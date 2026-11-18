@@ -25,12 +25,12 @@ jobs:
         cordova create myApp com.note3.media MediaApp
         cd myApp
         cordova platform add android@10.1.2
-        # توجيه التطبيق إلى سيرفرك المحلي
+        # توجيه التطبيق إلى سيرفرك المحلي (استبدل الـ IP بما يناسب شبكتك)
         echo '<script>window.location.replace("http://192.168.1.200:8080");</script>' > www/index.html
         cordova build android --release -- --no-sign
 
     - name: Upload APK Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: app-release-apk
         path: myApp/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
