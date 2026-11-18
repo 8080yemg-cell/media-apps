@@ -1,0 +1,42 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+
+    - name: Build Webview APK with Cordova
+      run: |
+        sudo npm install -g cordova
+        cordova create myApp com.note3.media MediaApp
+        cd myApp
+        # ضبط التوافقية لتدعم أندرويد 5 كحد أدنى (API 21)
+        cordova platform add android@10.1.2
+        
+        # استبدال ملف الواجهة الافتراضي بصفحة الاتصال بسيرفرك المحلي
+        echo '<script>window.location.replace("http://192.168.1.200:8080");</script>' > www/index.html
+        
+        cordova build android --release
+        
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release-apk
+        path: myApp/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
