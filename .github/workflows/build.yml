@@ -30,27 +30,15 @@ jobs:
         cd myApp
         cordova platform add android@13.0.0
 
-        # السماح بالاتصال المحلي HTTP وإعداد دعم الشاشات والتشغيل في الخلفية
         node -e '
           const fs = require("fs");
           let xml = fs.readFileSync("config.xml", "utf8");
           xml = xml.replace("<widget ", "<widget xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
-          xml = xml.replace("</widget>", `
-            <access origin="*" />
-            <allow-navigation href="*" />
-            <preference name="AndroidInsecureFileModeEnabled" value="true" />
-            <preference name="android-minSdkVersion" value="21" />
-            <preference name="KeepRunning" value="true" />
-            <preference name="Orientation" value="default" />
-            <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-              <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" />
-            </edit-config>
-          </widget>`);
+          xml = xml.replace("</widget>", "  <access origin=\"*\" />\n  <allow-navigation href=\"*\" />\n  <preference name=\"AndroidInsecureFileModeEnabled\" value=\"true\" />\n  <preference name=\"android-minSdkVersion\" value=\"21\" />\n  <preference name=\"KeepRunning\" value=\"true\" />\n  <preference name=\"Orientation\" value=\"default\" />\n  <edit-config file=\"app/src/main/AndroidManifest.xml\" mode=\"merge\" target=\"/manifest/application\">\n    <application android:usesCleartextTraffic=\"true\" android:hardwareAccelerated=\"true\" />\n  </edit-config>\n</widget>");
           fs.writeFileSync("config.xml", xml);
         '
 
-        # كتابة واجهة التطبيق الاحترافية بالكامل داخل www/index.html
-        cat << 'EOF' > www/index.html
+        cat << 'EOF' > /tmp/app.html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
@@ -71,7 +59,6 @@ jobs:
       --shadow: 0 14px 35px rgba(0, 0, 0, 0.55);
       --radius: 16px;
     }
-
     [data-theme="light"] {
       --bg: #f3f4f8;
       --bg-elevated: #ffffff;
@@ -82,25 +69,18 @@ jobs:
       --border: rgba(0, 0, 0, 0.08);
       --shadow: 0 10px 28px rgba(15, 20, 40, 0.08);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.35s ease, color 0.35s ease; }
-
-    /* Top Glass Navbar */
     .navbar {
       position: sticky; top: 0; z-index: 50;
       display: flex; align-items: center; justify-content: space-between; gap: 14px;
-      padding: 14px 22px;
-      background: var(--glass);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      padding: 14px 22px; background: var(--glass); backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
     }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; letter-spacing: 0.3px; white-space: nowrap; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; white-space: nowrap; }
     .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
     .server-badge { font-size: 0.75rem; padding: 3px 9px; border-radius: 99px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
     .status-led { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
-
     .search-box { flex: 1; max-width: 420px; position: relative; }
     .search-box input {
       width: 100%; padding: 10px 38px 10px 14px; border-radius: 99px;
@@ -109,32 +89,28 @@ jobs:
     }
     .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
     .search-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
-
     .nav-actions { display: flex; align-items: center; gap: 8px; }
     .icon-btn {
       width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border);
       background: var(--bg-card); color: var(--text); cursor: pointer;
       display: grid; place-items: center; font-size: 1.1rem;
-      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      transition: transform 0.2s, border-color 0.2s;
     }
     .icon-btn:hover, .icon-btn:focus { transform: translateY(-2px); border-color: var(--accent); outline: none; }
-
-    /* Hero Banner */
     .container { max-width: 1320px; margin: 0 auto; padding: 20px 22px 110px; }
     .hero {
       position: relative; border-radius: 22px; padding: 28px; margin-bottom: 24px;
       background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
       border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden;
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;
     }
     .hero::before {
       content: ""; position: absolute; inset: -40%;
       background: radial-gradient(circle at 20% 30%, var(--accent-glow), transparent 55%);
       pointer-events: none;
     }
-    .hero-content { position: relative; z-index: 1; max-width: 620px; }
+    .hero-content { position: relative; z-index: 1; max-width: 640px; }
     .hero-tag { display: inline-block; padding: 4px 12px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 0.78rem; font-weight: 700; margin-bottom: 10px; }
-    .hero h1 { font-size: 1.7rem; margin-bottom: 8px; }
+    .hero h1 { font-size: 1.65rem; margin-bottom: 8px; }
     .hero p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px; }
     .hero-btns { display: flex; flex-wrap: wrap; gap: 10px; }
     .btn-primary {
@@ -147,17 +123,12 @@ jobs:
       color: var(--text); font-weight: 600; cursor: pointer; transition: border-color 0.2s;
     }
     .btn-secondary:hover { border-color: var(--accent); }
-
-    /* Filter Tabs */
     .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 16px; }
     .tab {
       padding: 8px 16px; border-radius: 99px; border: 1px solid var(--border);
       background: var(--bg-card); color: var(--text-muted); cursor: pointer; white-space: nowrap; font-weight: 600;
-      transition: all 0.2s;
     }
     .tab.active, .tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-    /* Interactive Cards Grid with Mouse Spotlight */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
     .card {
       position: relative; border-radius: var(--radius); background: var(--bg-card);
@@ -185,8 +156,6 @@ jobs:
     }
     .card h3 { font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card p { font-size: 0.82rem; color: var(--text-muted); }
-
-    /* Embedded Server Browser View */
     .server-frame-wrap {
       display: none; position: fixed; inset: 0; z-index: 80; background: var(--bg);
       flex-direction: column;
@@ -197,8 +166,6 @@ jobs:
       padding: 10px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--border);
     }
     .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
-
-    /* Fullscreen & Floating Mini Player (Persistent Audio/Video on Back) */
     .player-shell {
       position: fixed; z-index: 90; background: #000; border: 1px solid var(--border);
       box-shadow: 0 20px 50px rgba(0,0,0,0.75); overflow: hidden;
@@ -219,9 +186,7 @@ jobs:
       background: rgba(255,255,255,0.14); border: none; color: #fff;
       padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
     }
-    .player-shell video, .player-shell audio { width: 100%; height: 100%; flex: 1; background: #000; }
-
-    /* Modal (Settings & PIN Management) */
+    .player-shell video { width: 100%; height: 100%; flex: 1; background: #000; }
     .modal-backdrop {
       display: none; position: fixed; inset: 0; z-index: 100;
       background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
@@ -242,8 +207,6 @@ jobs:
       width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
       background: var(--bg-card); color: var(--text); outline: none;
     }
-
-    /* PIN Lock Screen */
     .lock-screen {
       position: fixed; inset: 0; z-index: 200; background: var(--bg);
       display: none; place-items: center; padding: 20px;
@@ -265,8 +228,6 @@ jobs:
   </style>
 </head>
 <body>
-
-  <!-- PIN Lock Screen -->
   <div class="lock-screen" id="lockScreen">
     <div class="lock-card">
       <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
@@ -276,28 +237,22 @@ jobs:
       <div class="keypad" id="keypad"></div>
     </div>
   </div>
-
-  <!-- Navbar -->
   <header class="navbar">
     <div class="brand">
       <span class="brand-dot"></span>
       <span>Note3 Cinema</span>
       <span class="server-badge"><span class="status-led"></span> 192.168.1.200:8080</span>
     </div>
-
     <div class="search-box">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" placeholder="ابحث في الأفلام، الأنمي، الموسيقى...">
     </div>
-
     <div class="nav-actions">
       <button class="icon-btn" id="themeToggle" title="تبديل الفاتح / الداكن">🌓</button>
       <button class="icon-btn" id="openServerBtn" title="فتح واجهة السيرفر الكاملة">🌐</button>
       <button class="icon-btn" id="settingsBtn" title="الإعدادات والألوان وكلمة السر">⚙️</button>
     </div>
   </header>
-
-  <!-- Main Content -->
   <main class="container">
     <section class="hero">
       <div class="hero-content">
@@ -305,23 +260,19 @@ jobs:
         <h1>مكتبتك السينمائية الخاصة على الشبكة المحلية</h1>
         <p>تصفّح ملفات سيرفر Galaxy Note 3 مباشرة داخل التطبيق، أو شغّل الفيديو والموسيقى في مشغّل عائم مستمر عند الرجوع.</p>
         <div class="hero-btns">
-          <button class="btn-primary" onclick="openServerModal()">▶ استعراض ملفات السيرفر الآن</button>
+          <button class="btn-primary" onclick="openServerModal('')">▶ استعراض ملفات السيرفر الآن</button>
           <button class="btn-secondary" onclick="openSettings()">🎨 تخصيص الألوان والقفل</button>
         </div>
       </div>
     </section>
-
     <div class="tabs" id="categoryTabs">
       <button class="tab active" data-cat="all">الكل</button>
       <button class="tab" data-cat="video">أفلام وأنمي</button>
       <button class="tab" data-cat="audio">موسيقى وصوتيات</button>
       <button class="tab" data-cat="fav">المفضلة ⭐</button>
     </div>
-
     <div class="grid" id="mediaGrid"></div>
   </main>
-
-  <!-- Embedded In-App Server Browser (Never leaves app to external browser) -->
   <div class="server-frame-wrap" id="serverFrameWrap">
     <div class="frame-bar">
       <strong>📡 سيرفر النوت 3 المحلي (192.168.1.200:8080)</strong>
@@ -332,8 +283,6 @@ jobs:
     </div>
     <iframe id="serverIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
   </div>
-
-  <!-- Persistent Fullscreen / Floating Mini-Player -->
   <div class="player-shell" id="playerShell">
     <div class="player-top">
       <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;">المشغل</span>
@@ -344,15 +293,12 @@ jobs:
     </div>
     <video id="videoPlayer" controls playsinline></video>
   </div>
-
-  <!-- Settings Modal -->
   <div class="modal-backdrop" id="settingsModal">
     <div class="modal">
       <h2>
         <span>⚙️ إعدادات التطبيق</span>
         <button class="icon-btn" style="width:32px;height:32px;" onclick="closeSettings()">✕</button>
       </h2>
-
       <div class="setting-row">
         <label><strong>🎨 لون الهوية (Accent Color):</strong></label>
         <div class="swatches">
@@ -363,12 +309,10 @@ jobs:
           <div class="swatch" style="background:#f59e0b" onclick="setAccent('#f59e0b','rgba(245,158,11,0.35)')"></div>
         </div>
       </div>
-
       <div class="setting-row">
         <label><strong>🌐 رابط السيرفر المحلي:</strong></label>
         <input type="text" class="input-field" id="serverUrlInput" value="http://192.168.1.200:8080">
       </div>
-
       <div class="setting-row">
         <label style="display:flex;align-items:center;justify-content:space-between;">
           <strong>🔒 قفل التطبيق بكلمة سر (PIN):</strong>
@@ -377,7 +321,6 @@ jobs:
         <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="أدخل رمزاً جديداً من 4 أرقام لتغييره">
         <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
       </div>
-
       <div class="setting-row">
         <label><strong>⏱️ مؤقت النوم (إيقاف التشغيل تلقائياً):</strong></label>
         <select class="input-field" id="sleepTimerSelect" onchange="setSleepTimer(this.value)">
@@ -389,21 +332,16 @@ jobs:
       </div>
     </div>
   </div>
-
   <script>
     const SERVER_DEFAULT = localStorage.getItem('serverUrl') || 'http://192.168.1.200:8080';
     let favs = JSON.parse(localStorage.getItem('favs') || '[]');
     let currentCat = 'all';
-
-    // Sample quick-access items & direct server folders (auto-links to your local server)
     const items = [
-      { id: 'srv-root', title: 'مجلد السيرفر الرئيسي', desc: 'تصفح جميع المجلدات والملفات على Note 3', type: 'video', icon: '📂', action: 'server', url: '' },
-      { id: 'srv-movies', title: 'قسم الأفلام والمسلسلات', desc: 'مشاهدة مباشرة من مجلد الأفلام', type: 'video', icon: '🎬', action: 'server', url: '/movies' },
-      { id: 'srv-anime', title: 'مكتبة الأنمي', desc: 'حلقات الأنمي بجودة عالية', type: 'video', icon: '⛩️', action: 'server', url: '/anime' },
-      { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر في الخلفية والنافذة المصغرة', type: 'audio', icon: '🎵', action: 'server', url: '/music' }
+      { id: 'srv-root', title: 'مجلد السيرفر الرئيسي', desc: 'تصفح جميع المجلدات والملفات على Note 3', type: 'video', icon: '📂', url: '' },
+      { id: 'srv-movies', title: 'قسم الأفلام والمسلسلات', desc: 'مشاهدة مباشرة من مجلد الأفلام', type: 'video', icon: '🎬', url: '/movies' },
+      { id: 'srv-anime', title: 'مكتبة الأنمي', desc: 'حلقات الأنمي بجودة عالية', type: 'video', icon: '⛩️', url: '/anime' },
+      { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر في الخلفية والنافذة المصغرة', type: 'audio', icon: '🎵', url: '/music' }
     ];
-
-    // Apply Saved Theme & Accent
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     const savedAccent = localStorage.getItem('accent');
@@ -412,26 +350,21 @@ jobs:
       document.documentElement.style.setProperty('--accent', savedAccent);
       document.documentElement.style.setProperty('--accent-glow', savedGlow);
     }
-
     document.getElementById('themeToggle').onclick = () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
     };
-
     function setAccent(color, glow) {
       document.documentElement.style.setProperty('--accent', color);
       document.documentElement.style.setProperty('--accent-glow', glow);
       localStorage.setItem('accent', color);
       localStorage.setItem('accentGlow', glow);
     }
-
-    // Render Cards + Mouse Hover Spotlight
     function renderGrid() {
       const q = document.getElementById('searchInput').value.trim().toLowerCase();
       const grid = document.getElementById('mediaGrid');
       grid.innerHTML = '';
-
       items.filter(item => {
         const matchCat = currentCat === 'all' || (currentCat === 'fav' ? favs.includes(item.id) : item.type === currentCat);
         const matchQ = !q || item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q);
@@ -459,14 +392,12 @@ jobs:
         grid.appendChild(card);
       });
     }
-
     function toggleFav(e, id) {
       e.stopPropagation();
       favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
       localStorage.setItem('favs', JSON.stringify(favs));
       renderGrid();
     }
-
     document.getElementById('searchInput').oninput = renderGrid;
     document.querySelectorAll('.tab').forEach(btn => {
       btn.onclick = () => {
@@ -476,48 +407,26 @@ jobs:
         renderGrid();
       };
     });
-
-    // In-App Server Frame (Intercepts media files into Persistent Mini-Player)
     function openServerModal(subPath = '') {
       const base = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
-      const frame = document.getElementById('serverIframe');
-      frame.src = base + subPath;
+      document.getElementById('serverIframe').src = base + subPath;
       document.getElementById('serverFrameWrap').classList.add('open');
     }
-
     function closeServerModal() {
       document.getElementById('serverFrameWrap').classList.remove('open');
     }
-
     document.getElementById('openServerBtn').onclick = () => openServerModal('');
-
-    // Persistent Player & Mini-Player on Back Button
     const playerShell = document.getElementById('playerShell');
     const videoPlayer = document.getElementById('videoPlayer');
-
-    function playMedia(url, title) {
-      document.getElementById('playerTitle').textContent = title || 'تشغيل الوسائط';
-      videoPlayer.src = url;
-      playerShell.className = 'player-shell full';
-      videoPlayer.play().catch(() => {});
-      history.pushState({ playerOpen: true }, '');
-    }
-
     function toggleMiniPlayer() {
-      if (playerShell.classList.contains('full')) {
-        playerShell.className = 'player-shell mini';
-      } else {
-        playerShell.className = 'player-shell full';
-      }
+      if (playerShell.classList.contains('full')) playerShell.className = 'player-shell mini';
+      else playerShell.className = 'player-shell full';
     }
-
     function closePlayer() {
       videoPlayer.pause();
       videoPlayer.src = '';
       playerShell.className = 'player-shell';
     }
-
-    // Handle Android Back Button: shrink fullscreen player to floating mini-player instead of stopping!
     document.addEventListener('backbutton', e => {
       if (playerShell.classList.contains('full')) {
         e.preventDefault();
@@ -530,8 +439,6 @@ jobs:
         closeSettings();
       }
     }, false);
-
-    // Settings & PIN Lock System
     function openSettings() {
       document.getElementById('serverUrlInput').value = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
       document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
@@ -539,7 +446,6 @@ jobs:
     }
     function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
     document.getElementById('settingsBtn').onclick = openSettings;
-
     function saveSettings() {
       const url = document.getElementById('serverUrlInput').value.trim();
       if (url) localStorage.setItem('serverUrl', url);
@@ -552,20 +458,12 @@ jobs:
       }
       closeSettings();
     }
-
-    // Sleep Timer
     let sleepTimeout = null;
     function setSleepTimer(mins) {
       clearTimeout(sleepTimeout);
       const m = parseInt(mins, 10);
-      if (m > 0) {
-        sleepTimeout = setTimeout(() => {
-          videoPlayer.pause();
-        }, m * 60000);
-      }
+      if (m > 0) sleepTimeout = setTimeout(() => videoPlayer.pause(), m * 60000);
     }
-
-    // PIN Lock Screen Logic
     let enteredPin = '';
     function initLockScreen() {
       if (localStorage.getItem('pinEnabled') !== 'true') return;
@@ -595,14 +493,13 @@ jobs:
         pad.appendChild(b);
       });
     }
-
     initLockScreen();
     renderGrid();
   </script>
 </body>
 </html>
 EOF
-
+        cp /tmp/app.html www/index.html
         cordova build android --debug
 
     - name: Upload APK Artifact
