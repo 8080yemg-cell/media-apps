@@ -19,11 +19,12 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
     - name: Build Webview APK with Cordova
       run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_SDK_ROOT=$ANDROID_HOME
+        export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
+
         sudo npm install -g cordova@11.1.0
         cordova create myApp com.note3.media MediaApp
         cd myApp
@@ -38,8 +39,8 @@ jobs:
           fs.writeFileSync("config.xml", xml);
         '
 
-        # توجيه التطبيق إلى سيرفرك المحلي (استبدل الـ IP بعنوان سيرفر النوت 3)
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;background:#0f0f0f;"><script>window.location.replace("http://192.168.1.50:8080");</script></body></html>' > www/index.html
+        # توجيه التطبيق إلى سيرفرك المحلي على العنوان 192.168.1.200:8080
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;background:#0f0f0f;"><script>window.location.replace("http://192.168.1.200:8080");</script></body></html>' > www/index.html
 
         cordova build android --debug
 
