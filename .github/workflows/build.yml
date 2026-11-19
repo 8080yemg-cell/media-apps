@@ -146,7 +146,7 @@ jobs:
               transition: transform 0.2s, border-color 0.2s;
             }
             .icon-btn:hover, .icon-btn:focus { transform: translateY(-2px); border-color: var(--accent); outline: none; }
-            .container { max-width: 1320px; margin: 0 auto; padding: 20px 22px 110px; }
+            .container { max-width: 1320px; margin: 0 auto; padding: 20px 22px 120px; }
             .hero {
               position: relative; border-radius: 22px; padding: 28px; margin-bottom: 24px;
               background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
@@ -205,6 +205,7 @@ jobs:
             }
             .card h3 { font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             .card p { font-size: 0.82rem; color: var(--text-muted); }
+
             .server-frame-wrap {
               display: none; position: fixed; inset: 0; z-index: 80; background: var(--bg);
               flex-direction: column;
@@ -215,29 +216,40 @@ jobs:
               padding: 10px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--border);
             }
             .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
+
+            /* Unified Video & Audio Player + Mini-Player */
             .player-shell {
-              position: fixed; z-index: 90; background: #000; border: 1px solid var(--border);
-              box-shadow: 0 20px 50px rgba(0,0,0,0.75); overflow: hidden;
-              transition: all 0.35s cubic-bezier(.2,.8,.2,1);
+              position: fixed; z-index: 95; background: #0b0b10; border: 1px solid var(--border);
+              box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;
+              transition: all 0.3s cubic-bezier(.2,.8,.2,1);
               display: none; flex-direction: column;
             }
             .player-shell.full { display: flex; inset: 0; border-radius: 0; }
             .player-shell.mini {
-              display: flex; bottom: 18px; left: 18px; width: 310px; height: 195px;
+              display: flex; bottom: 16px; left: 16px; width: 320px; height: 210px;
               border-radius: 16px; border: 2px solid var(--accent);
             }
+            .player-shell.mini.audio-mode { height: 122px; width: 330px; }
             .player-top {
-              display: flex; align-items: center; justify-content: space-between;
-              padding: 8px 12px; background: rgba(15,15,20,0.9); color: #fff; font-size: 0.85rem;
+              display: flex; align-items: center; justify-content: space-between; gap: 8px;
+              padding: 8px 12px; background: rgba(15,15,22,0.94); color: #fff; font-size: 0.85rem;
             }
-            .player-controls { display: flex; gap: 6px; }
-            .player-controls button {
-              background: rgba(255,255,255,0.14); border: none; color: #fff;
-              padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
+            .player-controls { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+            .player-controls button, .player-controls select {
+              background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.12); color: #fff;
+              padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; outline: none;
             }
-            .player-shell video { width: 100%; height: 100%; flex: 1; background: #000; }
+            .player-controls select option { background: #14141c; color: #fff; }
+            .player-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; position: relative; }
+            .player-shell video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+            .audio-stage { display: none; width: 100%; padding: 14px; text-align: center; color: #fff; }
+            .player-shell.audio-mode .audio-stage { display: block; }
+            .player-shell.audio-mode video { display: none; }
+            .player-shell.mini .audio-stage { padding: 8px 12px; }
+            .player-shell.mini .audio-icon { display: none; }
+
             .modal-backdrop {
-              display: none; position: fixed; inset: 0; z-index: 100;
+              display: none; position: fixed; inset: 0; z-index: 110;
               background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
               place-items: center; padding: 16px;
             }
@@ -286,6 +298,7 @@ jobs:
               <div class="keypad" id="keypad"></div>
             </div>
           </div>
+
           <header class="navbar">
             <div class="brand">
               <img class="brand-logo" src="app-icon.png" onerror="this.style.display='none'" alt="Mg Cinema">
@@ -302,26 +315,30 @@ jobs:
               <button class="icon-btn" id="settingsBtn" title="الإعدادات والألوان وكلمة السر">&#9881;</button>
             </div>
           </header>
+
           <main class="container">
             <section class="hero">
               <div class="hero-content">
                 <span class="hero-tag">MG CINEMA • LOCAL MEDIA HUB</span>
                 <h1>تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</h1>
-                <p>استعرض مكتبة الفيديو والصوتيات والملفات من سيرفر الجوال مباشرة داخل التطبيق مع مشغل عائم مستمر عند الرجوع.</p>
+                <p>استعرض مكتبة الفيديو والصوتيات والملفات من سيرفر الجوال مباشرة داخل التطبيق مع تسريع التشغيل ونافذة مصغرة مستمرة عند الرجوع.</p>
                 <div class="hero-btns">
                   <button class="btn-primary" onclick="openServerModal('')">&#9654; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</button>
                   <button class="btn-secondary" onclick="openSettings()">&#127912; تخصيص الألوان والقفل</button>
                 </div>
               </div>
             </section>
+
             <div class="tabs" id="categoryTabs">
               <button class="tab active" data-cat="all">الكل</button>
               <button class="tab" data-cat="video">فيديو</button>
               <button class="tab" data-cat="audio">موسيقى وصوتيات</button>
               <button class="tab" data-cat="fav">المفضلة &#11088;</button>
             </div>
+
             <div class="grid" id="mediaGrid"></div>
           </main>
+
           <div class="server-frame-wrap" id="serverFrameWrap">
             <div class="frame-bar">
               <strong>&#128225; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</strong>
@@ -332,16 +349,34 @@ jobs:
             </div>
             <iframe id="serverIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
           </div>
+
+          <!-- Video + Audio Player with Speed Control & Smart Mini-Player (Disabled on Android TV) -->
           <div class="player-shell" id="playerShell">
             <div class="player-top">
-              <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;">المشغل</span>
+              <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">المشغل</span>
               <div class="player-controls">
-                <button id="toggleMiniBtn" onclick="toggleMiniPlayer()">تصغير / تكبير</button>
+                <select id="speedSelect" title="سرعة التشغيل" onchange="setPlaybackSpeed(this.value)">
+                  <option value="0.5">0.5x</option>
+                  <option value="0.75">0.75x</option>
+                  <option value="1" selected>1x</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2x</option>
+                </select>
+                <button id="toggleMiniBtn" onclick="toggleMiniPlayer()">مصغرة</button>
                 <button onclick="closePlayer()">&#10005;</button>
               </div>
             </div>
-            <video id="videoPlayer" controls playsinline></video>
+            <div class="player-body">
+              <video id="videoPlayer" controls playsinline></video>
+              <div class="audio-stage" id="audioStage">
+                <div class="audio-icon" style="font-size:2.6rem;margin-bottom:8px;">&#127925;</div>
+                <div id="audioNowPlaying" style="font-weight:700;margin-bottom:8px;">تشغيل صوتي</div>
+                <audio id="audioPlayer" controls style="width:100%;max-width:520px;"></audio>
+              </div>
+            </div>
           </div>
+
           <div class="modal-backdrop" id="settingsModal">
             <div class="modal">
               <h2>
@@ -381,16 +416,28 @@ jobs:
               </div>
             </div>
           </div>
+
           <script>
             const SERVER_DEFAULT = localStorage.getItem('serverUrl') || 'http://192.168.1.200:8080';
             if (!localStorage.getItem('appPin')) localStorage.setItem('appPin', '1234');
             let favs = JSON.parse(localStorage.getItem('favs') || '[]');
             let currentCat = 'all';
+
+            // Detect Android TV / TV boxes (never use mini-player on Android TV)
+            function isAndroidTV() {
+              const ua = navigator.userAgent || '';
+              const tvUA = /Android TV|BRAVIA|AFT|FireTV|SmartTV|GoogleTV|TV/i.test(ua);
+              const noTouchLargeScreen = window.innerWidth >= 1024 && !('ontouchstart' in window);
+              return tvUA || noTouchLargeScreen;
+            }
+            const TV_MODE = isAndroidTV();
+
             const items = [
               { id: 'srv-root', title: 'تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق', desc: 'استعراض جميع المجلدات والملفات على السيرفر المحلي', type: 'video', icon: '&#128194;', url: '' },
               { id: 'srv-video', title: 'مكتبة الفيديو', desc: 'مشاهدة مقاطع الفيديو مباشرة من سيرفر الجوال', type: 'video', icon: '&#127916;', url: '/video' },
-              { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر في الخلفية والنافذة المصغرة', type: 'audio', icon: '&#127925;', url: '/music' }
+              { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر مع تسريع ونافذة مصغرة عند الرجوع', type: 'audio', icon: '&#127925;', url: '/music' }
             ];
+
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
             const savedAccent = localStorage.getItem('accent');
@@ -399,17 +446,20 @@ jobs:
               document.documentElement.style.setProperty('--accent', savedAccent);
               document.documentElement.style.setProperty('--accent-glow', savedGlow);
             }
+
             document.getElementById('themeToggle').onclick = () => {
               const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
               document.documentElement.setAttribute('data-theme', next);
               localStorage.setItem('theme', next);
             };
+
             function setAccent(color, glow) {
               document.documentElement.style.setProperty('--accent', color);
               document.documentElement.style.setProperty('--accent-glow', glow);
               localStorage.setItem('accent', color);
               localStorage.setItem('accentGlow', glow);
             }
+
             function renderGrid() {
               const q = document.getElementById('searchInput').value.trim().toLowerCase();
               const grid = document.getElementById('mediaGrid');
@@ -441,12 +491,14 @@ jobs:
                 grid.appendChild(card);
               });
             }
+
             function toggleFav(e, id) {
               e.stopPropagation();
               favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
               localStorage.setItem('favs', JSON.stringify(favs));
               renderGrid();
             }
+
             document.getElementById('searchInput').oninput = renderGrid;
             document.querySelectorAll('.tab').forEach(btn => {
               btn.onclick = () => {
@@ -456,37 +508,113 @@ jobs:
                 renderGrid();
               };
             });
+
             function getServerBase() {
               return (localStorage.getItem('serverUrl') || SERVER_DEFAULT).replace(/\/+$/, '');
             }
+
             function openServerModal(subPath = '') {
               const base = getServerBase();
               document.getElementById('serverIframe').src = base + subPath;
               document.getElementById('serverFrameWrap').classList.add('open');
             }
+
             function reloadServerFrame() {
               const frame = document.getElementById('serverIframe');
               frame.src = frame.src && frame.src !== 'about:blank' ? frame.src : getServerBase();
             }
+
             function closeServerModal() {
               document.getElementById('serverFrameWrap').classList.remove('open');
+              if (!TV_MODE && isMediaActive() && playerShell.classList.contains('full')) {
+                setMiniMode(true);
+              }
             }
+
             document.getElementById('openServerBtn').onclick = () => openServerModal('');
+
             const playerShell = document.getElementById('playerShell');
             const videoPlayer = document.getElementById('videoPlayer');
-            function toggleMiniPlayer() {
-              if (playerShell.classList.contains('full')) playerShell.className = 'player-shell mini';
-              else playerShell.className = 'player-shell full';
+            const audioPlayer = document.getElementById('audioPlayer');
+            const toggleMiniBtn = document.getElementById('toggleMiniBtn');
+            let activeMediaType = 'video';
+
+            if (TV_MODE && toggleMiniBtn) {
+              toggleMiniBtn.style.display = 'none';
             }
+
+            function isMediaActive() {
+              const el = activeMediaType === 'audio' ? audioPlayer : videoPlayer;
+              return !!(el && el.src && !el.ended);
+            }
+
+            function getActiveMediaEl() {
+              return activeMediaType === 'audio' ? audioPlayer : videoPlayer;
+            }
+
+            function playMedia(url, title, type = 'video') {
+              activeMediaType = type;
+              document.getElementById('playerTitle').textContent = title || 'المشغل';
+              document.getElementById('audioNowPlaying').textContent = title || 'تشغيل صوتي';
+
+              if (type === 'audio') {
+                videoPlayer.pause();
+                videoPlayer.removeAttribute('src');
+                audioPlayer.src = url;
+                playerShell.className = 'player-shell full audio-mode';
+                audioPlayer.playbackRate = parseFloat(document.getElementById('speedSelect').value || '1');
+                audioPlayer.play().catch(() => {});
+              } else {
+                audioPlayer.pause();
+                audioPlayer.removeAttribute('src');
+                videoPlayer.src = url;
+                playerShell.className = 'player-shell full';
+                videoPlayer.playbackRate = parseFloat(document.getElementById('speedSelect').value || '1');
+                videoPlayer.play().catch(() => {});
+              }
+            }
+
+            function setPlaybackSpeed(rate) {
+              const r = parseFloat(rate) || 1;
+              videoPlayer.playbackRate = r;
+              audioPlayer.playbackRate = r;
+            }
+
+            function setMiniMode(enableMini) {
+              if (TV_MODE) {
+                playerShell.className = activeMediaType === 'audio' ? 'player-shell full audio-mode' : 'player-shell full';
+                return;
+              }
+              if (enableMini && isMediaActive()) {
+                playerShell.className = activeMediaType === 'audio' ? 'player-shell mini audio-mode' : 'player-shell mini';
+                if (toggleMiniBtn) toggleMiniBtn.textContent = 'تكبير';
+              } else {
+                playerShell.className = activeMediaType === 'audio' ? 'player-shell full audio-mode' : 'player-shell full';
+                if (toggleMiniBtn) toggleMiniBtn.textContent = 'مصغرة';
+              }
+            }
+
+            function toggleMiniPlayer() {
+              if (TV_MODE) return;
+              setMiniMode(!playerShell.classList.contains('mini'));
+            }
+
             function closePlayer() {
               videoPlayer.pause();
-              videoPlayer.src = '';
+              audioPlayer.pause();
+              videoPlayer.removeAttribute('src');
+              audioPlayer.removeAttribute('src');
               playerShell.className = 'player-shell';
             }
+
             document.addEventListener('backbutton', e => {
               if (playerShell.classList.contains('full')) {
                 e.preventDefault();
-                playerShell.className = 'player-shell mini';
+                if (!TV_MODE && isMediaActive()) {
+                  setMiniMode(true);
+                } else {
+                  closePlayer();
+                }
               } else if (document.getElementById('serverFrameWrap').classList.contains('open')) {
                 e.preventDefault();
                 closeServerModal();
@@ -495,6 +623,7 @@ jobs:
                 closeSettings();
               }
             }, false);
+
             function openSettings() {
               document.getElementById('serverUrlInput').value = getServerBase();
               document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
@@ -502,6 +631,7 @@ jobs:
             }
             function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
             document.getElementById('settingsBtn').onclick = openSettings;
+
             function saveSettings() {
               const url = document.getElementById('serverUrlInput').value.trim();
               if (url) localStorage.setItem('serverUrl', url);
@@ -514,12 +644,19 @@ jobs:
               }
               closeSettings();
             }
+
             let sleepTimeout = null;
             function setSleepTimer(mins) {
               clearTimeout(sleepTimeout);
               const m = parseInt(mins, 10);
-              if (m > 0) sleepTimeout = setTimeout(() => videoPlayer.pause(), m * 60000);
+              if (m > 0) {
+                sleepTimeout = setTimeout(() => {
+                  videoPlayer.pause();
+                  audioPlayer.pause();
+                }, m * 60000);
+              }
             }
+
             let enteredPin = '';
             function initLockScreen() {
               if (localStorage.getItem('pinEnabled') !== 'true') return;
@@ -549,6 +686,7 @@ jobs:
                 pad.appendChild(b);
               });
             }
+
             initLockScreen();
             renderGrid();
           </script>
