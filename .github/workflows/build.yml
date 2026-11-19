@@ -26,9 +26,15 @@ jobs:
         export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
 
         sudo npm install -g cordova@12.0.0
-        cordova create myApp com.note3.media "Note3 Cinema"
+        cordova create myApp com.mg.cinema "Mg Cinema"
         cd myApp
         cordova platform add android@13.0.0
+
+        # استخدام الأيقونة المرفوعة في المستودع إذا كانت موجودة
+        if [ -f "../Mg_Cinema_icon_8_transparent.png" ]; then
+          mkdir -p res/icon/android
+          cp ../Mg_Cinema_icon_8_transparent.png res/icon/android/icon.png
+        fi
 
         python3 - << 'PYEOF'
         with open("config.xml", "r", encoding="utf-8") as f:
@@ -45,6 +51,14 @@ jobs:
           <preference name="android-minSdkVersion" value="21" />
           <preference name="KeepRunning" value="true" />
           <preference name="Orientation" value="default" />
+          <platform name="android">
+            <icon src="res/icon/android/icon.png" density="ldpi" />
+            <icon src="res/icon/android/icon.png" density="mdpi" />
+            <icon src="res/icon/android/icon.png" density="hdpi" />
+            <icon src="res/icon/android/icon.png" density="xhdpi" />
+            <icon src="res/icon/android/icon.png" density="xxhdpi" />
+            <icon src="res/icon/android/icon.png" density="xxxhdpi" />
+          </platform>
           <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" />
           </edit-config>
@@ -60,7 +74,7 @@ jobs:
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-          <title>Note3 Media Hub</title>
+          <title>Mg Cinema</title>
           <style>
             :root {
               --accent: #e50914;
@@ -94,7 +108,7 @@ jobs:
               border-bottom: 1px solid var(--border);
             }
             .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; white-space: nowrap; }
-            .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
+            .brand-logo { width: 32px; height: 32px; border-radius: 8px; object-fit: contain; background: #14141c; padding: 2px; }
             .server-badge { font-size: 0.75rem; padding: 3px 9px; border-radius: 99px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
             .status-led { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
             .search-box { flex: 1; max-width: 420px; position: relative; }
@@ -248,42 +262,42 @@ jobs:
             <div class="lock-card">
               <div style="font-size:2rem;margin-bottom:8px;">&#128274;</div>
               <h3>أدخل رمز الدخول</h3>
-              <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;" id="pinHint">الرمز الافتراضي: 0000</p>
+              <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;" id="pinHint">الرمز الافتراضي: 1234</p>
               <div class="pin-dots" id="pinDots"><span></span><span></span><span></span><span></span></div>
               <div class="keypad" id="keypad"></div>
             </div>
           </div>
           <header class="navbar">
             <div class="brand">
-              <span class="brand-dot"></span>
-              <span>Note3 Cinema</span>
+              <img class="brand-logo" src="res/icon/android/icon.png" onerror="this.style.display='none'" alt="Mg Cinema">
+              <span>Mg Cinema</span>
               <span class="server-badge"><span class="status-led"></span> 192.168.1.200:8080</span>
             </div>
             <div class="search-box">
               <span class="search-icon">&#128269;</span>
-              <input type="text" id="searchInput" placeholder="ابحث في الأفلام، الأنمي، الموسيقى...">
+              <input type="text" id="searchInput" placeholder="ابحث في الفيديو، الموسيقى، الملفات...">
             </div>
             <div class="nav-actions">
               <button class="icon-btn" id="themeToggle" title="تبديل الفاتح / الداكن">&#127763;</button>
-              <button class="icon-btn" id="openServerBtn" title="فتح واجهة السيرفر الكاملة">&#127760;</button>
+              <button class="icon-btn" id="openServerBtn" title="تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق">&#127760;</button>
               <button class="icon-btn" id="settingsBtn" title="الإعدادات والألوان وكلمة السر">&#9881;</button>
             </div>
           </header>
           <main class="container">
             <section class="hero">
               <div class="hero-content">
-                <span class="hero-tag">LOCAL MEDIA HUB • FULL HD</span>
-                <h1>مكتبتك السينمائية الخاصة على الشبكة المحلية</h1>
-                <p>تصفّح ملفات سيرفر Galaxy Note 3 مباشرة داخل التطبيق، أو شغّل الفيديو والموسيقى في مشغّل عائم مستمر عند الرجوع.</p>
+                <span class="hero-tag">MG CINEMA • LOCAL MEDIA HUB</span>
+                <h1>تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</h1>
+                <p>استعرض مكتبة الفيديو والصوتيات والملفات من سيرفر الجوال مباشرة داخل التطبيق مع مشغل عائم مستمر عند الرجوع.</p>
                 <div class="hero-btns">
-                  <button class="btn-primary" onclick="openServerModal('')">&#9654; استعراض ملفات السيرفر الآن</button>
+                  <button class="btn-primary" onclick="openServerModal('')">&#9654; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</button>
                   <button class="btn-secondary" onclick="openSettings()">&#127912; تخصيص الألوان والقفل</button>
                 </div>
               </div>
             </section>
             <div class="tabs" id="categoryTabs">
               <button class="tab active" data-cat="all">الكل</button>
-              <button class="tab" data-cat="video">أفلام وأنمي</button>
+              <button class="tab" data-cat="video">فيديو</button>
               <button class="tab" data-cat="audio">موسيقى وصوتيات</button>
               <button class="tab" data-cat="fav">المفضلة &#11088;</button>
             </div>
@@ -291,9 +305,9 @@ jobs:
           </main>
           <div class="server-frame-wrap" id="serverFrameWrap">
             <div class="frame-bar">
-              <strong>&#128225; سيرفر النوت 3 المحلي (192.168.1.200:8080)</strong>
+              <strong>&#128225; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</strong>
               <div style="display:flex;gap:8px;">
-                <button class="btn-secondary" style="padding:6px 12px;" onclick="document.getElementById('serverIframe').src='http://192.168.1.200:8080'">تحديث</button>
+                <button class="btn-secondary" style="padding:6px 12px;" onclick="reloadServerFrame()">تحديث</button>
                 <button class="btn-primary" style="padding:6px 14px;" onclick="closeServerModal()">رجوع للواجهة &#10005;</button>
               </div>
             </div>
@@ -312,7 +326,7 @@ jobs:
           <div class="modal-backdrop" id="settingsModal">
             <div class="modal">
               <h2>
-                <span>&#9881; إعدادات التطبيق</span>
+                <span>&#9881; إعدادات Mg Cinema</span>
                 <button class="icon-btn" style="width:32px;height:32px;" onclick="closeSettings()">&#10005;</button>
               </h2>
               <div class="setting-row">
@@ -334,7 +348,7 @@ jobs:
                   <strong>&#128274; قفل التطبيق بكلمة سر (PIN):</strong>
                   <input type="checkbox" id="pinEnabledToggle" style="width:20px;height:20px;">
                 </label>
-                <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="أدخل رمزاً جديداً من 4 أرقام لتغييره">
+                <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="أدخل رمزاً جديداً من 4 أرقام لتغييره (الافتراضي 1234)">
                 <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
               </div>
               <div class="setting-row">
@@ -350,12 +364,12 @@ jobs:
           </div>
           <script>
             const SERVER_DEFAULT = localStorage.getItem('serverUrl') || 'http://192.168.1.200:8080';
+            if (!localStorage.getItem('appPin')) localStorage.setItem('appPin', '1234');
             let favs = JSON.parse(localStorage.getItem('favs') || '[]');
             let currentCat = 'all';
             const items = [
-              { id: 'srv-root', title: 'مجلد السيرفر الرئيسي', desc: 'تصفح جميع المجلدات والملفات على Note 3', type: 'video', icon: '&#128194;', url: '' },
-              { id: 'srv-movies', title: 'قسم الأفلام والمسلسلات', desc: 'مشاهدة مباشرة من مجلد الأفلام', type: 'video', icon: '&#127916;', url: '/movies' },
-              { id: 'srv-anime', title: 'مكتبة الأنمي', desc: 'حلقات الأنمي بجودة عالية', type: 'video', icon: '&#9961;', url: '/anime' },
+              { id: 'srv-root', title: 'تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق', desc: 'استعراض جميع المجلدات والملفات على السيرفر المحلي', type: 'video', icon: '&#128194;', url: '' },
+              { id: 'srv-video', title: 'مكتبة الفيديو', desc: 'مشاهدة مقاطع الفيديو مباشرة من سيرفر الجوال', type: 'video', icon: '&#127916;', url: '/video' },
               { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر في الخلفية والنافذة المصغرة', type: 'audio', icon: '&#127925;', url: '/music' }
             ];
             const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -392,7 +406,7 @@ jobs:
                 card.tabIndex = 0;
                 card.innerHTML = `
                   <div class="card-thumb">
-                    <span class="card-type">${item.type === 'audio' ? 'صوتيات' : 'فيديو'}</span>
+                    <span class="card-type">${item.type === 'audio' ? 'صوتيات' : 'مكتبة الفيديو'}</span>
                     <button class="fav-btn" onclick="toggleFav(event, '${item.id}')">${isFav ? '&#11088;' : '&#9734;'}</button>
                     <span>${item.icon}</span>
                   </div>
@@ -423,10 +437,17 @@ jobs:
                 renderGrid();
               };
             });
+            function getServerBase() {
+              return (localStorage.getItem('serverUrl') || SERVER_DEFAULT).replace(/\/+$/, '');
+            }
             function openServerModal(subPath = '') {
-              const base = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
+              const base = getServerBase();
               document.getElementById('serverIframe').src = base + subPath;
               document.getElementById('serverFrameWrap').classList.add('open');
+            }
+            function reloadServerFrame() {
+              const frame = document.getElementById('serverIframe');
+              frame.src = frame.src && frame.src !== 'about:blank' ? frame.src : getServerBase();
             }
             function closeServerModal() {
               document.getElementById('serverFrameWrap').classList.remove('open');
@@ -456,7 +477,7 @@ jobs:
               }
             }, false);
             function openSettings() {
-              document.getElementById('serverUrlInput').value = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
+              document.getElementById('serverUrlInput').value = getServerBase();
               document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
               document.getElementById('settingsModal').classList.add('open');
             }
@@ -483,7 +504,7 @@ jobs:
             let enteredPin = '';
             function initLockScreen() {
               if (localStorage.getItem('pinEnabled') !== 'true') return;
-              const savedPin = localStorage.getItem('appPin') || '0000';
+              const savedPin = localStorage.getItem('appPin') || '1234';
               const lock = document.getElementById('lockScreen');
               const pad = document.getElementById('keypad');
               lock.classList.add('active');
@@ -500,7 +521,7 @@ jobs:
                       lock.classList.remove('active');
                       enteredPin = '';
                     } else {
-                      document.getElementById('pinHint').textContent = 'رمز خاطئ، حاول مجدداً';
+                      document.getElementById('pinHint').textContent = 'رمز خاطئ، حاول مجدداً (الافتراضي 1234)';
                       enteredPin = '';
                       setTimeout(() => document.querySelectorAll('#pinDots span').forEach(s => s.classList.remove('filled')), 250);
                     }
