@@ -25,17 +25,17 @@ jobs:
         export ANDROID_SDK_ROOT=$ANDROID_HOME
         export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
 
-        sudo npm install -g cordova@11.1.0
+        sudo npm install -g cordova@12.0.0
         cordova create myApp com.note3.media MediaApp
         cd myApp
-        cordova platform add android@10.1.2
+        cordova platform add android@13.0.0
 
-        # السماح بالاتصال عبر HTTP المحلي في ملف config.xml
+        # السماح بالاتصال عبر HTTP المحلي وضبط الحد الأدنى لأندرويد 5 (API 21)
         node -e '
           const fs = require("fs");
           let xml = fs.readFileSync("config.xml", "utf8");
           xml = xml.replace("<widget ", "<widget xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
-          xml = xml.replace("</widget>", "  <preference name=\"AndroidInsecureFileModeEnabled\" value=\"true\" />\n  <edit-config file=\"app/src/main/AndroidManifest.xml\" mode=\"merge\" target=\"/manifest/application\">\n    <application android:usesCleartextTraffic=\"true\" />\n  </edit-config>\n</widget>");
+          xml = xml.replace("</widget>", "  <preference name=\"AndroidInsecureFileModeEnabled\" value=\"true\" />\n  <preference name=\"android-minSdkVersion\" value=\"21\" />\n  <edit-config file=\"app/src/main/AndroidManifest.xml\" mode=\"merge\" target=\"/manifest/application\">\n    <application android:usesCleartextTraffic=\"true\" />\n  </edit-config>\n</widget>");
           fs.writeFileSync("config.xml", xml);
         '
 
