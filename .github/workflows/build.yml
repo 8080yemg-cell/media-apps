@@ -30,476 +30,494 @@ jobs:
         cd myApp
         cordova platform add android@13.0.0
 
-        node -e '
-          const fs = require("fs");
-          let xml = fs.readFileSync("config.xml", "utf8");
-          xml = xml.replace("<widget ", "<widget xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
-          xml = xml.replace("</widget>", "  <access origin=\"*\" />\n  <allow-navigation href=\"*\" />\n  <preference name=\"AndroidInsecureFileModeEnabled\" value=\"true\" />\n  <preference name=\"android-minSdkVersion\" value=\"21\" />\n  <preference name=\"KeepRunning\" value=\"true\" />\n  <preference name=\"Orientation\" value=\"default\" />\n  <edit-config file=\"app/src/main/AndroidManifest.xml\" mode=\"merge\" target=\"/manifest/application\">\n    <application android:usesCleartextTraffic=\"true\" android:hardwareAccelerated=\"true\" />\n  </edit-config>\n</widget>");
-          fs.writeFileSync("config.xml", xml);
-        '
+        python3 - << 'PYEOF'
+        with open("config.xml", "r", encoding="utf-8") as f:
+            xml = f.read()
+        xml = xml.replace(
+            "<widget ",
+            '<widget xmlns:android="http://schemas.android.com/apk/res/android" ',
+            1
+        )
+        extras = """
+          <access origin="*" />
+          <allow-navigation href="*" />
+          <preference name="AndroidInsecureFileModeEnabled" value="true" />
+          <preference name="android-minSdkVersion" value="21" />
+          <preference name="KeepRunning" value="true" />
+          <preference name="Orientation" value="default" />
+          <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" />
+          </edit-config>
+        </widget>"""
+        xml = xml.replace("</widget>", extras, 1)
+        with open("config.xml", "w", encoding="utf-8") as f:
+            f.write(xml)
+        PYEOF
 
-        cat << 'EOF' > /tmp/app.html
-<!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="dark">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Note3 Media Hub</title>
-  <style>
-    :root {
-      --accent: #e50914;
-      --accent-glow: rgba(229, 9, 20, 0.35);
-      --bg: #0a0a0e;
-      --bg-elevated: #14141c;
-      --bg-card: #1a1a24;
-      --glass: rgba(20, 20, 28, 0.78);
-      --text: #f5f5f7;
-      --text-muted: #9a9aa6;
-      --border: rgba(255, 255, 255, 0.08);
-      --shadow: 0 14px 35px rgba(0, 0, 0, 0.55);
-      --radius: 16px;
-    }
-    [data-theme="light"] {
-      --bg: #f3f4f8;
-      --bg-elevated: #ffffff;
-      --bg-card: #ffffff;
-      --glass: rgba(255, 255, 255, 0.85);
-      --text: #12131a;
-      --text-muted: #5c5f6e;
-      --border: rgba(0, 0, 0, 0.08);
-      --shadow: 0 10px 28px rgba(15, 20, 40, 0.08);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.35s ease, color 0.35s ease; }
-    .navbar {
-      position: sticky; top: 0; z-index: 50;
-      display: flex; align-items: center; justify-content: space-between; gap: 14px;
-      padding: 14px 22px; background: var(--glass); backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-    }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; white-space: nowrap; }
-    .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
-    .server-badge { font-size: 0.75rem; padding: 3px 9px; border-radius: 99px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-    .status-led { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
-    .search-box { flex: 1; max-width: 420px; position: relative; }
-    .search-box input {
-      width: 100%; padding: 10px 38px 10px 14px; border-radius: 99px;
-      border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
-      outline: none; font-size: 0.92rem; transition: border 0.25s, box-shadow 0.25s;
-    }
-    .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-    .search-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
-    .nav-actions { display: flex; align-items: center; gap: 8px; }
-    .icon-btn {
-      width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border);
-      background: var(--bg-card); color: var(--text); cursor: pointer;
-      display: grid; place-items: center; font-size: 1.1rem;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-    .icon-btn:hover, .icon-btn:focus { transform: translateY(-2px); border-color: var(--accent); outline: none; }
-    .container { max-width: 1320px; margin: 0 auto; padding: 20px 22px 110px; }
-    .hero {
-      position: relative; border-radius: 22px; padding: 28px; margin-bottom: 24px;
-      background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
-      border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden;
-    }
-    .hero::before {
-      content: ""; position: absolute; inset: -40%;
-      background: radial-gradient(circle at 20% 30%, var(--accent-glow), transparent 55%);
-      pointer-events: none;
-    }
-    .hero-content { position: relative; z-index: 1; max-width: 640px; }
-    .hero-tag { display: inline-block; padding: 4px 12px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 0.78rem; font-weight: 700; margin-bottom: 10px; }
-    .hero h1 { font-size: 1.65rem; margin-bottom: 8px; }
-    .hero p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px; }
-    .hero-btns { display: flex; flex-wrap: wrap; gap: 10px; }
-    .btn-primary {
-      padding: 11px 20px; border-radius: 12px; border: none; background: var(--accent); color: #fff;
-      font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow); transition: transform 0.2s;
-    }
-    .btn-primary:hover { transform: scale(1.03); }
-    .btn-secondary {
-      padding: 11px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-elevated);
-      color: var(--text); font-weight: 600; cursor: pointer; transition: border-color 0.2s;
-    }
-    .btn-secondary:hover { border-color: var(--accent); }
-    .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 16px; }
-    .tab {
-      padding: 8px 16px; border-radius: 99px; border: 1px solid var(--border);
-      background: var(--bg-card); color: var(--text-muted); cursor: pointer; white-space: nowrap; font-weight: 600;
-    }
-    .tab.active, .tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
-    .card {
-      position: relative; border-radius: var(--radius); background: var(--bg-card);
-      border: 1px solid var(--border); padding: 16px; cursor: pointer; overflow: hidden;
-      transition: transform 0.25s cubic-bezier(.2,.8,.2,1), border-color 0.25s, box-shadow 0.25s;
-    }
-    .card::after {
-      content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s;
-      background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--accent-glow), transparent 70%);
-    }
-    .card:hover::after, .card:focus::after { opacity: 1; }
-    .card:hover, .card:focus { transform: translateY(-5px) scale(1.015); border-color: var(--accent); box-shadow: var(--shadow); outline: none; }
-    .card-thumb {
-      height: 125px; border-radius: 12px; margin-bottom: 12px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-      display: grid; place-items: center; font-size: 2.3rem; position: relative;
-    }
-    .card-type {
-      position: absolute; top: 8px; left: 8px; font-size: 0.7rem; padding: 3px 8px;
-      border-radius: 8px; background: rgba(0,0,0,0.65); color: #fff;
-    }
-    .fav-btn {
-      position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%;
-      border: none; background: rgba(0,0,0,0.55); color: #fff; cursor: pointer; z-index: 2;
-    }
-    .card h3 { font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card p { font-size: 0.82rem; color: var(--text-muted); }
-    .server-frame-wrap {
-      display: none; position: fixed; inset: 0; z-index: 80; background: var(--bg);
-      flex-direction: column;
-    }
-    .server-frame-wrap.open { display: flex; }
-    .frame-bar {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 10px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--border);
-    }
-    .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
-    .player-shell {
-      position: fixed; z-index: 90; background: #000; border: 1px solid var(--border);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.75); overflow: hidden;
-      transition: all 0.35s cubic-bezier(.2,.8,.2,1);
-      display: none; flex-direction: column;
-    }
-    .player-shell.full { display: flex; inset: 0; border-radius: 0; }
-    .player-shell.mini {
-      display: flex; bottom: 18px; left: 18px; width: 310px; height: 195px;
-      border-radius: 16px; border: 2px solid var(--accent);
-    }
-    .player-top {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 12px; background: rgba(15,15,20,0.9); color: #fff; font-size: 0.85rem;
-    }
-    .player-controls { display: flex; gap: 6px; }
-    .player-controls button {
-      background: rgba(255,255,255,0.14); border: none; color: #fff;
-      padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
-    }
-    .player-shell video { width: 100%; height: 100%; flex: 1; background: #000; }
-    .modal-backdrop {
-      display: none; position: fixed; inset: 0; z-index: 100;
-      background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
-      place-items: center; padding: 16px;
-    }
-    .modal-backdrop.open { display: grid; }
-    .modal {
-      width: 100%; max-width: 460px; background: var(--bg-elevated);
-      border: 1px solid var(--border); border-radius: 22px; padding: 22px; box-shadow: var(--shadow);
-    }
-    .modal h2 { margin-bottom: 14px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-    .setting-row { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
-    .setting-row:last-child { border-bottom: none; }
-    .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
-    .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; transition: transform 0.2s; }
-    .swatch:hover { transform: scale(1.15); }
-    .input-field {
-      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
-      background: var(--bg-card); color: var(--text); outline: none;
-    }
-    .lock-screen {
-      position: fixed; inset: 0; z-index: 200; background: var(--bg);
-      display: none; place-items: center; padding: 20px;
-    }
-    .lock-screen.active { display: grid; }
-    .lock-card {
-      width: 100%; max-width: 340px; text-align: center; background: var(--bg-elevated);
-      border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: var(--shadow);
-    }
-    .pin-dots { display: flex; justify-content: center; gap: 12px; margin: 18px 0; }
-    .pin-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
-    .pin-dots span.filled { background: var(--accent); }
-    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .keypad button {
-      padding: 14px; border-radius: 14px; border: 1px solid var(--border);
-      background: var(--bg-card); color: var(--text); font-size: 1.15rem; font-weight: 700; cursor: pointer;
-    }
-    .keypad button:active { background: var(--accent); color: #fff; }
-  </style>
-</head>
-<body>
-  <div class="lock-screen" id="lockScreen">
-    <div class="lock-card">
-      <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
-      <h3>أدخل رمز الدخول</h3>
-      <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;" id="pinHint">الرمز الافتراضي: 0000</p>
-      <div class="pin-dots" id="pinDots"><span></span><span></span><span></span><span></span></div>
-      <div class="keypad" id="keypad"></div>
-    </div>
-  </div>
-  <header class="navbar">
-    <div class="brand">
-      <span class="brand-dot"></span>
-      <span>Note3 Cinema</span>
-      <span class="server-badge"><span class="status-led"></span> 192.168.1.200:8080</span>
-    </div>
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="ابحث في الأفلام، الأنمي، الموسيقى...">
-    </div>
-    <div class="nav-actions">
-      <button class="icon-btn" id="themeToggle" title="تبديل الفاتح / الداكن">🌓</button>
-      <button class="icon-btn" id="openServerBtn" title="فتح واجهة السيرفر الكاملة">🌐</button>
-      <button class="icon-btn" id="settingsBtn" title="الإعدادات والألوان وكلمة السر">⚙️</button>
-    </div>
-  </header>
-  <main class="container">
-    <section class="hero">
-      <div class="hero-content">
-        <span class="hero-tag">LOCAL MEDIA HUB • FULL HD</span>
-        <h1>مكتبتك السينمائية الخاصة على الشبكة المحلية</h1>
-        <p>تصفّح ملفات سيرفر Galaxy Note 3 مباشرة داخل التطبيق، أو شغّل الفيديو والموسيقى في مشغّل عائم مستمر عند الرجوع.</p>
-        <div class="hero-btns">
-          <button class="btn-primary" onclick="openServerModal('')">▶ استعراض ملفات السيرفر الآن</button>
-          <button class="btn-secondary" onclick="openSettings()">🎨 تخصيص الألوان والقفل</button>
-        </div>
-      </div>
-    </section>
-    <div class="tabs" id="categoryTabs">
-      <button class="tab active" data-cat="all">الكل</button>
-      <button class="tab" data-cat="video">أفلام وأنمي</button>
-      <button class="tab" data-cat="audio">موسيقى وصوتيات</button>
-      <button class="tab" data-cat="fav">المفضلة ⭐</button>
-    </div>
-    <div class="grid" id="mediaGrid"></div>
-  </main>
-  <div class="server-frame-wrap" id="serverFrameWrap">
-    <div class="frame-bar">
-      <strong>📡 سيرفر النوت 3 المحلي (192.168.1.200:8080)</strong>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-secondary" style="padding:6px 12px;" onclick="document.getElementById('serverIframe').src='http://192.168.1.200:8080'">تحديث</button>
-        <button class="btn-primary" style="padding:6px 14px;" onclick="closeServerModal()">رجوع للواجهة ✕</button>
-      </div>
-    </div>
-    <iframe id="serverIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
-  </div>
-  <div class="player-shell" id="playerShell">
-    <div class="player-top">
-      <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;">المشغل</span>
-      <div class="player-controls">
-        <button id="toggleMiniBtn" onclick="toggleMiniPlayer()">تصغير / تكبير</button>
-        <button onclick="closePlayer()">✕</button>
-      </div>
-    </div>
-    <video id="videoPlayer" controls playsinline></video>
-  </div>
-  <div class="modal-backdrop" id="settingsModal">
-    <div class="modal">
-      <h2>
-        <span>⚙️ إعدادات التطبيق</span>
-        <button class="icon-btn" style="width:32px;height:32px;" onclick="closeSettings()">✕</button>
-      </h2>
-      <div class="setting-row">
-        <label><strong>🎨 لون الهوية (Accent Color):</strong></label>
-        <div class="swatches">
-          <div class="swatch" style="background:#e50914" onclick="setAccent('#e50914','rgba(229,9,20,0.35)')"></div>
-          <div class="swatch" style="background:#00d2ff" onclick="setAccent('#00d2ff','rgba(0,210,255,0.35)')"></div>
-          <div class="swatch" style="background:#8b5cf6" onclick="setAccent('#8b5cf6','rgba(139,92,246,0.35)')"></div>
-          <div class="swatch" style="background:#10b981" onclick="setAccent('#10b981','rgba(16,185,129,0.35)')"></div>
-          <div class="swatch" style="background:#f59e0b" onclick="setAccent('#f59e0b','rgba(245,158,11,0.35)')"></div>
-        </div>
-      </div>
-      <div class="setting-row">
-        <label><strong>🌐 رابط السيرفر المحلي:</strong></label>
-        <input type="text" class="input-field" id="serverUrlInput" value="http://192.168.1.200:8080">
-      </div>
-      <div class="setting-row">
-        <label style="display:flex;align-items:center;justify-content:space-between;">
-          <strong>🔒 قفل التطبيق بكلمة سر (PIN):</strong>
-          <input type="checkbox" id="pinEnabledToggle" style="width:20px;height:20px;">
-        </label>
-        <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="أدخل رمزاً جديداً من 4 أرقام لتغييره">
-        <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
-      </div>
-      <div class="setting-row">
-        <label><strong>⏱️ مؤقت النوم (إيقاف التشغيل تلقائياً):</strong></label>
-        <select class="input-field" id="sleepTimerSelect" onchange="setSleepTimer(this.value)">
-          <option value="0">إيقاف المؤقت</option>
-          <option value="15">بعد 15 دقيقة</option>
-          <option value="30">بعد 30 دقيقة</option>
-          <option value="60">بعد 60 دقيقة</option>
-        </select>
-      </div>
-    </div>
-  </div>
-  <script>
-    const SERVER_DEFAULT = localStorage.getItem('serverUrl') || 'http://192.168.1.200:8080';
-    let favs = JSON.parse(localStorage.getItem('favs') || '[]');
-    let currentCat = 'all';
-    const items = [
-      { id: 'srv-root', title: 'مجلد السيرفر الرئيسي', desc: 'تصفح جميع المجلدات والملفات على Note 3', type: 'video', icon: '📂', url: '' },
-      { id: 'srv-movies', title: 'قسم الأفلام والمسلسلات', desc: 'مشاهدة مباشرة من مجلد الأفلام', type: 'video', icon: '🎬', url: '/movies' },
-      { id: 'srv-anime', title: 'مكتبة الأنمي', desc: 'حلقات الأنمي بجودة عالية', type: 'video', icon: '⛩️', url: '/anime' },
-      { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر في الخلفية والنافذة المصغرة', type: 'audio', icon: '🎵', url: '/music' }
-    ];
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    const savedAccent = localStorage.getItem('accent');
-    const savedGlow = localStorage.getItem('accentGlow');
-    if (savedAccent) {
-      document.documentElement.style.setProperty('--accent', savedAccent);
-      document.documentElement.style.setProperty('--accent-glow', savedGlow);
-    }
-    document.getElementById('themeToggle').onclick = () => {
-      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-    };
-    function setAccent(color, glow) {
-      document.documentElement.style.setProperty('--accent', color);
-      document.documentElement.style.setProperty('--accent-glow', glow);
-      localStorage.setItem('accent', color);
-      localStorage.setItem('accentGlow', glow);
-    }
-    function renderGrid() {
-      const q = document.getElementById('searchInput').value.trim().toLowerCase();
-      const grid = document.getElementById('mediaGrid');
-      grid.innerHTML = '';
-      items.filter(item => {
-        const matchCat = currentCat === 'all' || (currentCat === 'fav' ? favs.includes(item.id) : item.type === currentCat);
-        const matchQ = !q || item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q);
-        return matchCat && matchQ;
-      }).forEach(item => {
-        const isFav = favs.includes(item.id);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.tabIndex = 0;
-        card.innerHTML = `
-          <div class="card-thumb">
-            <span class="card-type">${item.type === 'audio' ? 'صوتيات' : 'فيديو'}</span>
-            <button class="fav-btn" onclick="toggleFav(event, '${item.id}')">${isFav ? '⭐' : '☆'}</button>
-            <span>${item.icon}</span>
-          </div>
-          <h3>${item.title}</h3>
-          <p>${item.desc}</p>
-        `;
-        card.onmousemove = e => {
-          const r = card.getBoundingClientRect();
-          card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-          card.style.setProperty('--my', (e.clientY - r.top) + 'px');
-        };
-        card.onclick = () => openServerModal(item.url);
-        grid.appendChild(card);
-      });
-    }
-    function toggleFav(e, id) {
-      e.stopPropagation();
-      favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
-      localStorage.setItem('favs', JSON.stringify(favs));
-      renderGrid();
-    }
-    document.getElementById('searchInput').oninput = renderGrid;
-    document.querySelectorAll('.tab').forEach(btn => {
-      btn.onclick = () => {
-        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentCat = btn.dataset.cat;
-        renderGrid();
-      };
-    });
-    function openServerModal(subPath = '') {
-      const base = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
-      document.getElementById('serverIframe').src = base + subPath;
-      document.getElementById('serverFrameWrap').classList.add('open');
-    }
-    function closeServerModal() {
-      document.getElementById('serverFrameWrap').classList.remove('open');
-    }
-    document.getElementById('openServerBtn').onclick = () => openServerModal('');
-    const playerShell = document.getElementById('playerShell');
-    const videoPlayer = document.getElementById('videoPlayer');
-    function toggleMiniPlayer() {
-      if (playerShell.classList.contains('full')) playerShell.className = 'player-shell mini';
-      else playerShell.className = 'player-shell full';
-    }
-    function closePlayer() {
-      videoPlayer.pause();
-      videoPlayer.src = '';
-      playerShell.className = 'player-shell';
-    }
-    document.addEventListener('backbutton', e => {
-      if (playerShell.classList.contains('full')) {
-        e.preventDefault();
-        playerShell.className = 'player-shell mini';
-      } else if (document.getElementById('serverFrameWrap').classList.contains('open')) {
-        e.preventDefault();
-        closeServerModal();
-      } else if (document.getElementById('settingsModal').classList.contains('open')) {
-        e.preventDefault();
-        closeSettings();
-      }
-    }, false);
-    function openSettings() {
-      document.getElementById('serverUrlInput').value = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
-      document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
-      document.getElementById('settingsModal').classList.add('open');
-    }
-    function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
-    document.getElementById('settingsBtn').onclick = openSettings;
-    function saveSettings() {
-      const url = document.getElementById('serverUrlInput').value.trim();
-      if (url) localStorage.setItem('serverUrl', url);
-      const pinEnabled = document.getElementById('pinEnabledToggle').checked;
-      localStorage.setItem('pinEnabled', pinEnabled);
-      const newPin = document.getElementById('newPinInput').value.trim();
-      if (/^\d{4}$/.test(newPin)) {
-        localStorage.setItem('appPin', newPin);
-        document.getElementById('newPinInput').value = '';
-      }
-      closeSettings();
-    }
-    let sleepTimeout = null;
-    function setSleepTimer(mins) {
-      clearTimeout(sleepTimeout);
-      const m = parseInt(mins, 10);
-      if (m > 0) sleepTimeout = setTimeout(() => videoPlayer.pause(), m * 60000);
-    }
-    let enteredPin = '';
-    function initLockScreen() {
-      if (localStorage.getItem('pinEnabled') !== 'true') return;
-      const savedPin = localStorage.getItem('appPin') || '0000';
-      const lock = document.getElementById('lockScreen');
-      const pad = document.getElementById('keypad');
-      lock.classList.add('active');
-      pad.innerHTML = '';
-      ['1','2','3','4','5','6','7','8','9','مسح','0','✓'].forEach(key => {
-        const b = document.createElement('button');
-        b.textContent = key;
-        b.onclick = () => {
-          if (key === 'مسح') enteredPin = '';
-          else if (key !== '✓' && enteredPin.length < 4) enteredPin += key;
-          document.querySelectorAll('#pinDots span').forEach((s, i) => s.classList.toggle('filled', i < enteredPin.length));
-          if (enteredPin.length === 4) {
-            if (enteredPin === savedPin) {
-              lock.classList.remove('active');
-              enteredPin = '';
-            } else {
-              document.getElementById('pinHint').textContent = 'رمز خاطئ، حاول مجدداً';
-              enteredPin = '';
-              setTimeout(() => document.querySelectorAll('#pinDots span').forEach(s => s.classList.remove('filled')), 250);
+        python3 - << 'PYEOF'
+        html = """<!DOCTYPE html>
+        <html lang="ar" dir="rtl" data-theme="dark">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+          <title>Note3 Media Hub</title>
+          <style>
+            :root {
+              --accent: #e50914;
+              --accent-glow: rgba(229, 9, 20, 0.35);
+              --bg: #0a0a0e;
+              --bg-elevated: #14141c;
+              --bg-card: #1a1a24;
+              --glass: rgba(20, 20, 28, 0.78);
+              --text: #f5f5f7;
+              --text-muted: #9a9aa6;
+              --border: rgba(255, 255, 255, 0.08);
+              --shadow: 0 14px 35px rgba(0, 0, 0, 0.55);
+              --radius: 16px;
             }
-          }
-        };
-        pad.appendChild(b);
-      });
-    }
-    initLockScreen();
-    renderGrid();
-  </script>
-</body>
-</html>
-EOF
-        cp /tmp/app.html www/index.html
+            [data-theme="light"] {
+              --bg: #f3f4f8;
+              --bg-elevated: #ffffff;
+              --bg-card: #ffffff;
+              --glass: rgba(255, 255, 255, 0.85);
+              --text: #12131a;
+              --text-muted: #5c5f6e;
+              --border: rgba(0, 0, 0, 0.08);
+              --shadow: 0 10px 28px rgba(15, 20, 40, 0.08);
+            }
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; }
+            body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.35s ease, color 0.35s ease; }
+            .navbar {
+              position: sticky; top: 0; z-index: 50;
+              display: flex; align-items: center; justify-content: space-between; gap: 14px;
+              padding: 14px 22px; background: var(--glass); backdrop-filter: blur(16px);
+              border-bottom: 1px solid var(--border);
+            }
+            .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; white-space: nowrap; }
+            .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
+            .server-badge { font-size: 0.75rem; padding: 3px 9px; border-radius: 99px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+            .status-led { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+            .search-box { flex: 1; max-width: 420px; position: relative; }
+            .search-box input {
+              width: 100%; padding: 10px 38px 10px 14px; border-radius: 99px;
+              border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
+              outline: none; font-size: 0.92rem; transition: border 0.25s, box-shadow 0.25s;
+            }
+            .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+            .search-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
+            .nav-actions { display: flex; align-items: center; gap: 8px; }
+            .icon-btn {
+              width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border);
+              background: var(--bg-card); color: var(--text); cursor: pointer;
+              display: grid; place-items: center; font-size: 1.1rem;
+              transition: transform 0.2s, border-color 0.2s;
+            }
+            .icon-btn:hover, .icon-btn:focus { transform: translateY(-2px); border-color: var(--accent); outline: none; }
+            .container { max-width: 1320px; margin: 0 auto; padding: 20px 22px 110px; }
+            .hero {
+              position: relative; border-radius: 22px; padding: 28px; margin-bottom: 24px;
+              background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+              border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden;
+            }
+            .hero::before {
+              content: ""; position: absolute; inset: -40%;
+              background: radial-gradient(circle at 20% 30%, var(--accent-glow), transparent 55%);
+              pointer-events: none;
+            }
+            .hero-content { position: relative; z-index: 1; max-width: 640px; }
+            .hero-tag { display: inline-block; padding: 4px 12px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 0.78rem; font-weight: 700; margin-bottom: 10px; }
+            .hero h1 { font-size: 1.65rem; margin-bottom: 8px; }
+            .hero p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px; }
+            .hero-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+            .btn-primary {
+              padding: 11px 20px; border-radius: 12px; border: none; background: var(--accent); color: #fff;
+              font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow); transition: transform 0.2s;
+            }
+            .btn-primary:hover { transform: scale(1.03); }
+            .btn-secondary {
+              padding: 11px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-elevated);
+              color: var(--text); font-weight: 600; cursor: pointer; transition: border-color 0.2s;
+            }
+            .btn-secondary:hover { border-color: var(--accent); }
+            .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 16px; }
+            .tab {
+              padding: 8px 16px; border-radius: 99px; border: 1px solid var(--border);
+              background: var(--bg-card); color: var(--text-muted); cursor: pointer; white-space: nowrap; font-weight: 600;
+            }
+            .tab.active, .tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+            .card {
+              position: relative; border-radius: var(--radius); background: var(--bg-card);
+              border: 1px solid var(--border); padding: 16px; cursor: pointer; overflow: hidden;
+              transition: transform 0.25s cubic-bezier(.2,.8,.2,1), border-color 0.25s, box-shadow 0.25s;
+            }
+            .card::after {
+              content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+              background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--accent-glow), transparent 70%);
+            }
+            .card:hover::after, .card:focus::after { opacity: 1; }
+            .card:hover, .card:focus { transform: translateY(-5px) scale(1.015); border-color: var(--accent); box-shadow: var(--shadow); outline: none; }
+            .card-thumb {
+              height: 125px; border-radius: 12px; margin-bottom: 12px;
+              background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+              display: grid; place-items: center; font-size: 2.3rem; position: relative;
+            }
+            .card-type {
+              position: absolute; top: 8px; left: 8px; font-size: 0.7rem; padding: 3px 8px;
+              border-radius: 8px; background: rgba(0,0,0,0.65); color: #fff;
+            }
+            .fav-btn {
+              position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%;
+              border: none; background: rgba(0,0,0,0.55); color: #fff; cursor: pointer; z-index: 2;
+            }
+            .card h3 { font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .card p { font-size: 0.82rem; color: var(--text-muted); }
+            .server-frame-wrap {
+              display: none; position: fixed; inset: 0; z-index: 80; background: var(--bg);
+              flex-direction: column;
+            }
+            .server-frame-wrap.open { display: flex; }
+            .frame-bar {
+              display: flex; align-items: center; justify-content: space-between; gap: 10px;
+              padding: 10px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--border);
+            }
+            .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
+            .player-shell {
+              position: fixed; z-index: 90; background: #000; border: 1px solid var(--border);
+              box-shadow: 0 20px 50px rgba(0,0,0,0.75); overflow: hidden;
+              transition: all 0.35s cubic-bezier(.2,.8,.2,1);
+              display: none; flex-direction: column;
+            }
+            .player-shell.full { display: flex; inset: 0; border-radius: 0; }
+            .player-shell.mini {
+              display: flex; bottom: 18px; left: 18px; width: 310px; height: 195px;
+              border-radius: 16px; border: 2px solid var(--accent);
+            }
+            .player-top {
+              display: flex; align-items: center; justify-content: space-between;
+              padding: 8px 12px; background: rgba(15,15,20,0.9); color: #fff; font-size: 0.85rem;
+            }
+            .player-controls { display: flex; gap: 6px; }
+            .player-controls button {
+              background: rgba(255,255,255,0.14); border: none; color: #fff;
+              padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
+            }
+            .player-shell video { width: 100%; height: 100%; flex: 1; background: #000; }
+            .modal-backdrop {
+              display: none; position: fixed; inset: 0; z-index: 100;
+              background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
+              place-items: center; padding: 16px;
+            }
+            .modal-backdrop.open { display: grid; }
+            .modal {
+              width: 100%; max-width: 460px; background: var(--bg-elevated);
+              border: 1px solid var(--border); border-radius: 22px; padding: 22px; box-shadow: var(--shadow);
+            }
+            .modal h2 { margin-bottom: 14px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+            .setting-row { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+            .setting-row:last-child { border-bottom: none; }
+            .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+            .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; transition: transform 0.2s; }
+            .swatch:hover { transform: scale(1.15); }
+            .input-field {
+              width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+              background: var(--bg-card); color: var(--text); outline: none;
+            }
+            .lock-screen {
+              position: fixed; inset: 0; z-index: 200; background: var(--bg);
+              display: none; place-items: center; padding: 20px;
+            }
+            .lock-screen.active { display: grid; }
+            .lock-card {
+              width: 100%; max-width: 340px; text-align: center; background: var(--bg-elevated);
+              border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: var(--shadow);
+            }
+            .pin-dots { display: flex; justify-content: center; gap: 12px; margin: 18px 0; }
+            .pin-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
+            .pin-dots span.filled { background: var(--accent); }
+            .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .keypad button {
+              padding: 14px; border-radius: 14px; border: 1px solid var(--border);
+              background: var(--bg-card); color: var(--text); font-size: 1.15rem; font-weight: 700; cursor: pointer;
+            }
+            .keypad button:active { background: var(--accent); color: #fff; }
+          </style>
+        </head>
+        <body>
+          <div class="lock-screen" id="lockScreen">
+            <div class="lock-card">
+              <div style="font-size:2rem;margin-bottom:8px;">&#128274;</div>
+              <h3>أدخل رمز الدخول</h3>
+              <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;" id="pinHint">الرمز الافتراضي: 0000</p>
+              <div class="pin-dots" id="pinDots"><span></span><span></span><span></span><span></span></div>
+              <div class="keypad" id="keypad"></div>
+            </div>
+          </div>
+          <header class="navbar">
+            <div class="brand">
+              <span class="brand-dot"></span>
+              <span>Note3 Cinema</span>
+              <span class="server-badge"><span class="status-led"></span> 192.168.1.200:8080</span>
+            </div>
+            <div class="search-box">
+              <span class="search-icon">&#128269;</span>
+              <input type="text" id="searchInput" placeholder="ابحث في الأفلام، الأنمي، الموسيقى...">
+            </div>
+            <div class="nav-actions">
+              <button class="icon-btn" id="themeToggle" title="تبديل الفاتح / الداكن">&#127763;</button>
+              <button class="icon-btn" id="openServerBtn" title="فتح واجهة السيرفر الكاملة">&#127760;</button>
+              <button class="icon-btn" id="settingsBtn" title="الإعدادات والألوان وكلمة السر">&#9881;</button>
+            </div>
+          </header>
+          <main class="container">
+            <section class="hero">
+              <div class="hero-content">
+                <span class="hero-tag">LOCAL MEDIA HUB • FULL HD</span>
+                <h1>مكتبتك السينمائية الخاصة على الشبكة المحلية</h1>
+                <p>تصفّح ملفات سيرفر Galaxy Note 3 مباشرة داخل التطبيق، أو شغّل الفيديو والموسيقى في مشغّل عائم مستمر عند الرجوع.</p>
+                <div class="hero-btns">
+                  <button class="btn-primary" onclick="openServerModal('')">&#9654; استعراض ملفات السيرفر الآن</button>
+                  <button class="btn-secondary" onclick="openSettings()">&#127912; تخصيص الألوان والقفل</button>
+                </div>
+              </div>
+            </section>
+            <div class="tabs" id="categoryTabs">
+              <button class="tab active" data-cat="all">الكل</button>
+              <button class="tab" data-cat="video">أفلام وأنمي</button>
+              <button class="tab" data-cat="audio">موسيقى وصوتيات</button>
+              <button class="tab" data-cat="fav">المفضلة &#11088;</button>
+            </div>
+            <div class="grid" id="mediaGrid"></div>
+          </main>
+          <div class="server-frame-wrap" id="serverFrameWrap">
+            <div class="frame-bar">
+              <strong>&#128225; سيرفر النوت 3 المحلي (192.168.1.200:8080)</strong>
+              <div style="display:flex;gap:8px;">
+                <button class="btn-secondary" style="padding:6px 12px;" onclick="document.getElementById('serverIframe').src='http://192.168.1.200:8080'">تحديث</button>
+                <button class="btn-primary" style="padding:6px 14px;" onclick="closeServerModal()">رجوع للواجهة &#10005;</button>
+              </div>
+            </div>
+            <iframe id="serverIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
+          </div>
+          <div class="player-shell" id="playerShell">
+            <div class="player-top">
+              <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;">المشغل</span>
+              <div class="player-controls">
+                <button id="toggleMiniBtn" onclick="toggleMiniPlayer()">تصغير / تكبير</button>
+                <button onclick="closePlayer()">&#10005;</button>
+              </div>
+            </div>
+            <video id="videoPlayer" controls playsinline></video>
+          </div>
+          <div class="modal-backdrop" id="settingsModal">
+            <div class="modal">
+              <h2>
+                <span>&#9881; إعدادات التطبيق</span>
+                <button class="icon-btn" style="width:32px;height:32px;" onclick="closeSettings()">&#10005;</button>
+              </h2>
+              <div class="setting-row">
+                <label><strong>&#127912; لون الهوية (Accent Color):</strong></label>
+                <div class="swatches">
+                  <div class="swatch" style="background:#e50914" onclick="setAccent('#e50914','rgba(229,9,20,0.35)')"></div>
+                  <div class="swatch" style="background:#00d2ff" onclick="setAccent('#00d2ff','rgba(0,210,255,0.35)')"></div>
+                  <div class="swatch" style="background:#8b5cf6" onclick="setAccent('#8b5cf6','rgba(139,92,246,0.35)')"></div>
+                  <div class="swatch" style="background:#10b981" onclick="setAccent('#10b981','rgba(16,185,129,0.35)')"></div>
+                  <div class="swatch" style="background:#f59e0b" onclick="setAccent('#f59e0b','rgba(245,158,11,0.35)')"></div>
+                </div>
+              </div>
+              <div class="setting-row">
+                <label><strong>&#127760; رابط السيرفر المحلي:</strong></label>
+                <input type="text" class="input-field" id="serverUrlInput" value="http://192.168.1.200:8080">
+              </div>
+              <div class="setting-row">
+                <label style="display:flex;align-items:center;justify-content:space-between;">
+                  <strong>&#128274; قفل التطبيق بكلمة سر (PIN):</strong>
+                  <input type="checkbox" id="pinEnabledToggle" style="width:20px;height:20px;">
+                </label>
+                <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="أدخل رمزاً جديداً من 4 أرقام لتغييره">
+                <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
+              </div>
+              <div class="setting-row">
+                <label><strong>&#9201; مؤقت النوم (إيقاف التشغيل تلقائياً):</strong></label>
+                <select class="input-field" id="sleepTimerSelect" onchange="setSleepTimer(this.value)">
+                  <option value="0">إيقاف المؤقت</option>
+                  <option value="15">بعد 15 دقيقة</option>
+                  <option value="30">بعد 30 دقيقة</option>
+                  <option value="60">بعد 60 دقيقة</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <script>
+            const SERVER_DEFAULT = localStorage.getItem('serverUrl') || 'http://192.168.1.200:8080';
+            let favs = JSON.parse(localStorage.getItem('favs') || '[]');
+            let currentCat = 'all';
+            const items = [
+              { id: 'srv-root', title: 'مجلد السيرفر الرئيسي', desc: 'تصفح جميع المجلدات والملفات على Note 3', type: 'video', icon: '&#128194;', url: '' },
+              { id: 'srv-movies', title: 'قسم الأفلام والمسلسلات', desc: 'مشاهدة مباشرة من مجلد الأفلام', type: 'video', icon: '&#127916;', url: '/movies' },
+              { id: 'srv-anime', title: 'مكتبة الأنمي', desc: 'حلقات الأنمي بجودة عالية', type: 'video', icon: '&#9961;', url: '/anime' },
+              { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر في الخلفية والنافذة المصغرة', type: 'audio', icon: '&#127925;', url: '/music' }
+            ];
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const savedAccent = localStorage.getItem('accent');
+            const savedGlow = localStorage.getItem('accentGlow');
+            if (savedAccent) {
+              document.documentElement.style.setProperty('--accent', savedAccent);
+              document.documentElement.style.setProperty('--accent-glow', savedGlow);
+            }
+            document.getElementById('themeToggle').onclick = () => {
+              const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+              document.documentElement.setAttribute('data-theme', next);
+              localStorage.setItem('theme', next);
+            };
+            function setAccent(color, glow) {
+              document.documentElement.style.setProperty('--accent', color);
+              document.documentElement.style.setProperty('--accent-glow', glow);
+              localStorage.setItem('accent', color);
+              localStorage.setItem('accentGlow', glow);
+            }
+            function renderGrid() {
+              const q = document.getElementById('searchInput').value.trim().toLowerCase();
+              const grid = document.getElementById('mediaGrid');
+              grid.innerHTML = '';
+              items.filter(item => {
+                const matchCat = currentCat === 'all' || (currentCat === 'fav' ? favs.includes(item.id) : item.type === currentCat);
+                const matchQ = !q || item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q);
+                return matchCat && matchQ;
+              }).forEach(item => {
+                const isFav = favs.includes(item.id);
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.tabIndex = 0;
+                card.innerHTML = `
+                  <div class="card-thumb">
+                    <span class="card-type">${item.type === 'audio' ? 'صوتيات' : 'فيديو'}</span>
+                    <button class="fav-btn" onclick="toggleFav(event, '${item.id}')">${isFav ? '&#11088;' : '&#9734;'}</button>
+                    <span>${item.icon}</span>
+                  </div>
+                  <h3>${item.title}</h3>
+                  <p>${item.desc}</p>
+                `;
+                card.onmousemove = e => {
+                  const r = card.getBoundingClientRect();
+                  card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+                  card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+                };
+                card.onclick = () => openServerModal(item.url);
+                grid.appendChild(card);
+              });
+            }
+            function toggleFav(e, id) {
+              e.stopPropagation();
+              favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
+              localStorage.setItem('favs', JSON.stringify(favs));
+              renderGrid();
+            }
+            document.getElementById('searchInput').oninput = renderGrid;
+            document.querySelectorAll('.tab').forEach(btn => {
+              btn.onclick = () => {
+                document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCat = btn.dataset.cat;
+                renderGrid();
+              };
+            });
+            function openServerModal(subPath = '') {
+              const base = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
+              document.getElementById('serverIframe').src = base + subPath;
+              document.getElementById('serverFrameWrap').classList.add('open');
+            }
+            function closeServerModal() {
+              document.getElementById('serverFrameWrap').classList.remove('open');
+            }
+            document.getElementById('openServerBtn').onclick = () => openServerModal('');
+            const playerShell = document.getElementById('playerShell');
+            const videoPlayer = document.getElementById('videoPlayer');
+            function toggleMiniPlayer() {
+              if (playerShell.classList.contains('full')) playerShell.className = 'player-shell mini';
+              else playerShell.className = 'player-shell full';
+            }
+            function closePlayer() {
+              videoPlayer.pause();
+              videoPlayer.src = '';
+              playerShell.className = 'player-shell';
+            }
+            document.addEventListener('backbutton', e => {
+              if (playerShell.classList.contains('full')) {
+                e.preventDefault();
+                playerShell.className = 'player-shell mini';
+              } else if (document.getElementById('serverFrameWrap').classList.contains('open')) {
+                e.preventDefault();
+                closeServerModal();
+              } else if (document.getElementById('settingsModal').classList.contains('open')) {
+                e.preventDefault();
+                closeSettings();
+              }
+            }, false);
+            function openSettings() {
+              document.getElementById('serverUrlInput').value = localStorage.getItem('serverUrl') || SERVER_DEFAULT;
+              document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
+              document.getElementById('settingsModal').classList.add('open');
+            }
+            function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+            document.getElementById('settingsBtn').onclick = openSettings;
+            function saveSettings() {
+              const url = document.getElementById('serverUrlInput').value.trim();
+              if (url) localStorage.setItem('serverUrl', url);
+              const pinEnabled = document.getElementById('pinEnabledToggle').checked;
+              localStorage.setItem('pinEnabled', pinEnabled);
+              const newPin = document.getElementById('newPinInput').value.trim();
+              if (/^\d{4}$/.test(newPin)) {
+                localStorage.setItem('appPin', newPin);
+                document.getElementById('newPinInput').value = '';
+              }
+              closeSettings();
+            }
+            let sleepTimeout = null;
+            function setSleepTimer(mins) {
+              clearTimeout(sleepTimeout);
+              const m = parseInt(mins, 10);
+              if (m > 0) sleepTimeout = setTimeout(() => videoPlayer.pause(), m * 60000);
+            }
+            let enteredPin = '';
+            function initLockScreen() {
+              if (localStorage.getItem('pinEnabled') !== 'true') return;
+              const savedPin = localStorage.getItem('appPin') || '0000';
+              const lock = document.getElementById('lockScreen');
+              const pad = document.getElementById('keypad');
+              lock.classList.add('active');
+              pad.innerHTML = '';
+              ['1','2','3','4','5','6','7','8','9','مسح','0','✓'].forEach(key => {
+                const b = document.createElement('button');
+                b.textContent = key;
+                b.onclick = () => {
+                  if (key === 'مسح') enteredPin = '';
+                  else if (key !== '✓' && enteredPin.length < 4) enteredPin += key;
+                  document.querySelectorAll('#pinDots span').forEach((s, i) => s.classList.toggle('filled', i < enteredPin.length));
+                  if (enteredPin.length === 4) {
+                    if (enteredPin === savedPin) {
+                      lock.classList.remove('active');
+                      enteredPin = '';
+                    } else {
+                      document.getElementById('pinHint').textContent = 'رمز خاطئ، حاول مجدداً';
+                      enteredPin = '';
+                      setTimeout(() => document.querySelectorAll('#pinDots span').forEach(s => s.classList.remove('filled')), 250);
+                    }
+                  }
+                };
+                pad.appendChild(b);
+              });
+            }
+            initLockScreen();
+            renderGrid();
+          </script>
+        </body>
+        </html>"""
+        with open("www/index.html", "w", encoding="utf-8") as f:
+            f.write(html)
+        PYEOF
+
         cordova build android --debug
 
     - name: Upload APK Artifact
