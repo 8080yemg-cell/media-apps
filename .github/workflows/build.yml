@@ -30,39 +30,58 @@ jobs:
         cd myApp
         cordova platform add android@13.0.0
 
-        # استخدام الأيقونة المرفوعة في المستودع إذا كانت موجودة
-        if [ -f "../Mg_Cinema_icon_8_transparent.png" ]; then
+        ICON_FOUND=""
+        for f in ../*.png ../*.jpg ../*.jpeg ../*.webp ../../*.png; do
+          if [ -f "$f" ]; then
+            ICON_FOUND="$f"
+            break
+          fi
+        done
+
+        if [ -n "$ICON_FOUND" ]; then
           mkdir -p res/icon/android
-          cp ../Mg_Cinema_icon_8_transparent.png res/icon/android/icon.png
+          cp "$ICON_FOUND" res/icon/android/icon.png
+          cp "$ICON_FOUND" www/app-icon.png
         fi
 
         python3 - << 'PYEOF'
+        import os
+
         with open("config.xml", "r", encoding="utf-8") as f:
             xml = f.read()
+
         xml = xml.replace(
             "<widget ",
             '<widget xmlns:android="http://schemas.android.com/apk/res/android" ',
             1
         )
-        extras = """
+
+        icon_block = ""
+        if os.path.exists("res/icon/android/icon.png"):
+            icon_block = """
+              <platform name="android">
+                <icon src="res/icon/android/icon.png" density="ldpi" />
+                <icon src="res/icon/android/icon.png" density="mdpi" />
+                <icon src="res/icon/android/icon.png" density="hdpi" />
+                <icon src="res/icon/android/icon.png" density="xhdpi" />
+                <icon src="res/icon/android/icon.png" density="xxhdpi" />
+                <icon src="res/icon/android/icon.png" density="xxxhdpi" />
+              </platform>
+            """
+
+        extras = f"""
           <access origin="*" />
           <allow-navigation href="*" />
           <preference name="AndroidInsecureFileModeEnabled" value="true" />
           <preference name="android-minSdkVersion" value="21" />
           <preference name="KeepRunning" value="true" />
           <preference name="Orientation" value="default" />
-          <platform name="android">
-            <icon src="res/icon/android/icon.png" density="ldpi" />
-            <icon src="res/icon/android/icon.png" density="mdpi" />
-            <icon src="res/icon/android/icon.png" density="hdpi" />
-            <icon src="res/icon/android/icon.png" density="xhdpi" />
-            <icon src="res/icon/android/icon.png" density="xxhdpi" />
-            <icon src="res/icon/android/icon.png" density="xxxhdpi" />
-          </platform>
+          {icon_block}
           <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" />
           </edit-config>
         </widget>"""
+
         xml = xml.replace("</widget>", extras, 1)
         with open("config.xml", "w", encoding="utf-8") as f:
             f.write(xml)
@@ -269,7 +288,7 @@ jobs:
           </div>
           <header class="navbar">
             <div class="brand">
-              <img class="brand-logo" src="res/icon/android/icon.png" onerror="this.style.display='none'" alt="Mg Cinema">
+              <img class="brand-logo" src="app-icon.png" onerror="this.style.display='none'" alt="Mg Cinema">
               <span>Mg Cinema</span>
               <span class="server-badge"><span class="status-led"></span> 192.168.1.200:8080</span>
             </div>
