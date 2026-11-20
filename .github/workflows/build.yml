@@ -122,88 +122,95 @@ jobs:
             body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.35s ease, color 0.35s ease; }
             .navbar {
               position: sticky; top: 0; z-index: 50;
-              display: flex; align-items: center; justify-content: space-between; gap: 14px;
-              padding: 14px 22px; background: var(--glass); backdrop-filter: blur(16px);
+              display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+              padding: 12px 18px; background: var(--glass); backdrop-filter: blur(16px);
               border-bottom: 1px solid var(--border);
             }
-            .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; white-space: nowrap; }
+            .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; }
             .brand-logo { width: 32px; height: 32px; border-radius: 8px; object-fit: contain; background: #14141c; padding: 2px; }
-            .server-badge { font-size: 0.75rem; padding: 3px 9px; border-radius: 99px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+            .server-chip {
+              font-size: 0.76rem; padding: 5px 11px; border-radius: 99px;
+              background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+              display: flex; align-items: center; gap: 7px; cursor: pointer;
+            }
+            .server-chip:hover { border-color: var(--accent); }
             .status-led { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
-            .search-box { flex: 1; max-width: 420px; position: relative; }
+            .search-box { flex: 1; min-width: 200px; max-width: 400px; position: relative; }
             .search-box input {
               width: 100%; padding: 10px 38px 10px 14px; border-radius: 99px;
               border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
-              outline: none; font-size: 0.92rem; transition: border 0.25s, box-shadow 0.25s;
+              outline: none; font-size: 0.9rem;
             }
             .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
             .search-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
             .nav-actions { display: flex; align-items: center; gap: 8px; }
             .icon-btn {
-              width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border);
+              width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border);
               background: var(--bg-card); color: var(--text); cursor: pointer;
-              display: grid; place-items: center; font-size: 1.1rem;
-              transition: transform 0.2s, border-color 0.2s;
+              display: grid; place-items: center; font-size: 1.05rem;
             }
-            .icon-btn:hover, .icon-btn:focus { transform: translateY(-2px); border-color: var(--accent); outline: none; }
-            .container { max-width: 1320px; margin: 0 auto; padding: 20px 22px 120px; }
+            .icon-btn:hover, .icon-btn:focus { border-color: var(--accent); outline: none; }
+
+            .container { max-width: 1320px; margin: 0 auto; padding: 18px 20px 130px; }
             .hero {
-              position: relative; border-radius: 22px; padding: 28px; margin-bottom: 24px;
+              position: relative; border-radius: 22px; padding: 24px; margin-bottom: 20px;
               background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
               border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden;
             }
-            .hero::before {
-              content: ""; position: absolute; inset: -40%;
-              background: radial-gradient(circle at 20% 30%, var(--accent-glow), transparent 55%);
-              pointer-events: none;
-            }
-            .hero-content { position: relative; z-index: 1; max-width: 640px; }
-            .hero-tag { display: inline-block; padding: 4px 12px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 0.78rem; font-weight: 700; margin-bottom: 10px; }
-            .hero h1 { font-size: 1.65rem; margin-bottom: 8px; }
-            .hero p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px; }
+            .hero h1 { font-size: 1.55rem; margin-bottom: 8px; }
+            .hero p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 14px; }
             .hero-btns { display: flex; flex-wrap: wrap; gap: 10px; }
             .btn-primary {
-              padding: 11px 20px; border-radius: 12px; border: none; background: var(--accent); color: #fff;
-              font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow); transition: transform 0.2s;
+              padding: 10px 18px; border-radius: 12px; border: none; background: var(--accent); color: #fff;
+              font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow);
             }
-            .btn-primary:hover { transform: scale(1.03); }
             .btn-secondary {
-              padding: 11px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-elevated);
-              color: var(--text); font-weight: 600; cursor: pointer; transition: border-color 0.2s;
+              padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-elevated);
+              color: var(--text); font-weight: 600; cursor: pointer;
             }
             .btn-secondary:hover { border-color: var(--accent); }
-            .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 16px; }
+
+            /* Servers Bar */
+            .servers-panel {
+              background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 18px;
+              padding: 16px; margin-bottom: 20px;
+            }
+            .servers-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+            .server-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+            .srv-card {
+              background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+              padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer;
+            }
+            .srv-card.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+            .srv-meta small { color: var(--text-muted); display: block; margin-top: 3px; }
+
+            .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 14px; }
             .tab {
               padding: 8px 16px; border-radius: 99px; border: 1px solid var(--border);
               background: var(--bg-card); color: var(--text-muted); cursor: pointer; white-space: nowrap; font-weight: 600;
             }
             .tab.active, .tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
             .card {
               position: relative; border-radius: var(--radius); background: var(--bg-card);
               border: 1px solid var(--border); padding: 16px; cursor: pointer; overflow: hidden;
-              transition: transform 0.25s cubic-bezier(.2,.8,.2,1), border-color 0.25s, box-shadow 0.25s;
+              transition: transform 0.2s ease, border-color 0.2s ease;
             }
-            .card::after {
-              content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s;
-              background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--accent-glow), transparent 70%);
-            }
-            .card:hover::after, .card:focus::after { opacity: 1; }
-            .card:hover, .card:focus { transform: translateY(-5px) scale(1.015); border-color: var(--accent); box-shadow: var(--shadow); outline: none; }
+            .card:hover, .card:focus { transform: translateY(-4px); border-color: var(--accent); outline: none; }
             .card-thumb {
-              height: 125px; border-radius: 12px; margin-bottom: 12px;
-              background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-              display: grid; place-items: center; font-size: 2.3rem; position: relative;
+              height: 115px; border-radius: 12px; margin-bottom: 10px;
+              background: rgba(255,255,255,0.03); display: grid; place-items: center; font-size: 2.2rem; position: relative;
             }
             .card-type {
               position: absolute; top: 8px; left: 8px; font-size: 0.7rem; padding: 3px 8px;
               border-radius: 8px; background: rgba(0,0,0,0.65); color: #fff;
             }
             .fav-btn {
-              position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%;
-              border: none; background: rgba(0,0,0,0.55); color: #fff; cursor: pointer; z-index: 2;
+              position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%;
+              border: none; background: rgba(0,0,0,0.55); color: #fff; cursor: pointer;
             }
-            .card h3 { font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .card h3 { font-size: 0.98rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             .card p { font-size: 0.82rem; color: var(--text-muted); }
 
             .server-frame-wrap {
@@ -212,40 +219,38 @@ jobs:
             }
             .server-frame-wrap.open { display: flex; }
             .frame-bar {
-              display: flex; align-items: center; justify-content: space-between; gap: 10px;
-              padding: 10px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--border);
+              display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+              padding: 10px 14px; background: var(--bg-elevated); border-bottom: 1px solid var(--border);
             }
             .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
 
-            /* Unified Video & Audio Player + Mini-Player */
+            /* Persistent Player + Mini-Player */
             .player-shell {
               position: fixed; z-index: 95; background: #0b0b10; border: 1px solid var(--border);
-              box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;
-              transition: all 0.3s cubic-bezier(.2,.8,.2,1);
-              display: none; flex-direction: column;
+              box-shadow: 0 20px 50px rgba(0,0,0,0.85); overflow: hidden;
+              transition: all 0.25s ease; display: none; flex-direction: column;
             }
             .player-shell.full { display: flex; inset: 0; border-radius: 0; }
             .player-shell.mini {
-              display: flex; bottom: 16px; left: 16px; width: 320px; height: 210px;
+              display: flex; bottom: 14px; left: 14px; width: 320px; height: 205px;
               border-radius: 16px; border: 2px solid var(--accent);
             }
-            .player-shell.mini.audio-mode { height: 122px; width: 330px; }
+            .player-shell.mini.audio-mode { height: 120px; width: 330px; }
             .player-top {
               display: flex; align-items: center; justify-content: space-between; gap: 8px;
-              padding: 8px 12px; background: rgba(15,15,22,0.94); color: #fff; font-size: 0.85rem;
+              padding: 8px 12px; background: rgba(15,15,22,0.95); color: #fff; font-size: 0.84rem;
             }
             .player-controls { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
             .player-controls button, .player-controls select {
-              background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.12); color: #fff;
+              background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.14); color: #fff;
               padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; outline: none;
             }
             .player-controls select option { background: #14141c; color: #fff; }
-            .player-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; position: relative; }
+            .player-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; }
             .player-shell video { width: 100%; height: 100%; object-fit: contain; background: #000; }
-            .audio-stage { display: none; width: 100%; padding: 14px; text-align: center; color: #fff; }
+            .audio-stage { display: none; width: 100%; padding: 12px; text-align: center; color: #fff; }
             .player-shell.audio-mode .audio-stage { display: block; }
             .player-shell.audio-mode video { display: none; }
-            .player-shell.mini .audio-stage { padding: 8px 12px; }
             .player-shell.mini .audio-icon { display: none; }
 
             .modal-backdrop {
@@ -255,15 +260,15 @@ jobs:
             }
             .modal-backdrop.open { display: grid; }
             .modal {
-              width: 100%; max-width: 460px; background: var(--bg-elevated);
-              border: 1px solid var(--border); border-radius: 22px; padding: 22px; box-shadow: var(--shadow);
+              width: 100%; max-width: 470px; background: var(--bg-elevated);
+              border: 1px solid var(--border); border-radius: 22px; padding: 20px; box-shadow: var(--shadow);
+              max-height: 90vh; overflow-y: auto;
             }
-            .modal h2 { margin-bottom: 14px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-            .setting-row { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+            .modal h2 { margin-bottom: 12px; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; }
+            .setting-row { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
             .setting-row:last-child { border-bottom: none; }
             .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
-            .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; transition: transform 0.2s; }
-            .swatch:hover { transform: scale(1.15); }
+            .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; }
             .input-field {
               width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
               background: var(--bg-card); color: var(--text); outline: none;
@@ -275,17 +280,16 @@ jobs:
             .lock-screen.active { display: grid; }
             .lock-card {
               width: 100%; max-width: 340px; text-align: center; background: var(--bg-elevated);
-              border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: var(--shadow);
+              border: 1px solid var(--border); border-radius: 24px; padding: 26px; box-shadow: var(--shadow);
             }
-            .pin-dots { display: flex; justify-content: center; gap: 12px; margin: 18px 0; }
+            .pin-dots { display: flex; justify-content: center; gap: 12px; margin: 16px 0; }
             .pin-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
             .pin-dots span.filled { background: var(--accent); }
             .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .keypad button {
-              padding: 14px; border-radius: 14px; border: 1px solid var(--border);
-              background: var(--bg-card); color: var(--text); font-size: 1.15rem; font-weight: 700; cursor: pointer;
+              padding: 13px; border-radius: 14px; border: 1px solid var(--border);
+              background: var(--bg-card); color: var(--text); font-size: 1.1rem; font-weight: 700; cursor: pointer;
             }
-            .keypad button:active { background: var(--accent); color: #fff; }
           </style>
         </head>
         <body>
@@ -303,11 +307,14 @@ jobs:
             <div class="brand">
               <img class="brand-logo" src="app-icon.png" onerror="this.style.display='none'" alt="Mg Cinema">
               <span>Mg Cinema</span>
-              <span class="server-badge"><span class="status-led"></span> 192.168.1.200:8080</span>
+              <button class="server-chip" id="activeServerChip" onclick="scanLocalServers()">
+                <span class="status-led"></span>
+                <span id="activeServerLabel">Note 3 Server (192.168.1.200:8080)</span>
+              </button>
             </div>
             <div class="search-box">
               <span class="search-icon">&#128269;</span>
-              <input type="text" id="searchInput" placeholder="ابحث في الفيديو، الموسيقى، الملفات...">
+              <input type="text" id="searchInput" placeholder="ابحث في الفيديو، الموسيقى، السيرفرات...">
             </div>
             <div class="nav-actions">
               <button class="icon-btn" id="themeToggle" title="تبديل الفاتح / الداكن">&#127763;</button>
@@ -318,15 +325,29 @@ jobs:
 
           <main class="container">
             <section class="hero">
-              <div class="hero-content">
-                <span class="hero-tag">MG CINEMA • LOCAL MEDIA HUB</span>
-                <h1>تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</h1>
-                <p>استعرض مكتبة الفيديو والصوتيات والملفات من سيرفر الجوال مباشرة داخل التطبيق مع تسريع التشغيل ونافذة مصغرة مستمرة عند الرجوع.</p>
-                <div class="hero-btns">
-                  <button class="btn-primary" onclick="openServerModal('')">&#9654; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</button>
-                  <button class="btn-secondary" onclick="openSettings()">&#127912; تخصيص الألوان والقفل</button>
+              <span class="hero-tag">MG CINEMA • LOCAL MULTI-SERVER</span>
+              <h1>تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</h1>
+              <p>ابحث عن الأجهزة المتصلة بالشبكة، اختر الجهاز الباث بالاسم، وشغّل الفيديو والصوت مع تسريع ونافذة مصغرة مستمرة عند الرجوع.</p>
+              <div class="hero-btns">
+                <button class="btn-primary" onclick="openServerModal('')">&#9654; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</button>
+                <button class="btn-secondary" onclick="scanLocalServers()">&#128225; البحث عن السيرفرات المتصلة</button>
+                <button class="btn-secondary" onclick="openSettings()">&#127912; إعدادات الجهاز والقفل</button>
+              </div>
+            </section>
+
+            <!-- Connected Servers Selector -->
+            <section class="servers-panel">
+              <div class="servers-head">
+                <div>
+                  <strong>&#128246; السيرفرات والأجهزة المتصلة</strong>
+                  <span style="color:var(--text-muted);font-size:0.82rem;margin-right:8px;" id="scanStatus">اضغط بحث لفحص الشبكة المحلية</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn-secondary" style="padding:7px 12px;" onclick="scanLocalServers()">بحث تلقائي</button>
+                  <button class="btn-primary" style="padding:7px 12px;" onclick="addManualServerPrompt()">+ إضافة جهاز/IP</button>
                 </div>
               </div>
+              <div class="server-list" id="serverList"></div>
             </section>
 
             <div class="tabs" id="categoryTabs">
@@ -341,7 +362,7 @@ jobs:
 
           <div class="server-frame-wrap" id="serverFrameWrap">
             <div class="frame-bar">
-              <strong>&#128225; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</strong>
+              <strong id="frameTitle">&#128225; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</strong>
               <div style="display:flex;gap:8px;">
                 <button class="btn-secondary" style="padding:6px 12px;" onclick="reloadServerFrame()">تحديث</button>
                 <button class="btn-primary" style="padding:6px 14px;" onclick="closeServerModal()">رجوع للواجهة &#10005;</button>
@@ -350,10 +371,9 @@ jobs:
             <iframe id="serverIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
           </div>
 
-          <!-- Video + Audio Player with Speed Control & Smart Mini-Player (Disabled on Android TV) -->
           <div class="player-shell" id="playerShell">
             <div class="player-top">
-              <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">المشغل</span>
+              <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:145px;">المشغل</span>
               <div class="player-controls">
                 <select id="speedSelect" title="سرعة التشغيل" onchange="setPlaybackSpeed(this.value)">
                   <option value="0.5">0.5x</option>
@@ -370,8 +390,8 @@ jobs:
             <div class="player-body">
               <video id="videoPlayer" controls playsinline></video>
               <div class="audio-stage" id="audioStage">
-                <div class="audio-icon" style="font-size:2.6rem;margin-bottom:8px;">&#127925;</div>
-                <div id="audioNowPlaying" style="font-weight:700;margin-bottom:8px;">تشغيل صوتي</div>
+                <div class="audio-icon" style="font-size:2.4rem;margin-bottom:6px;">&#127925;</div>
+                <div id="audioNowPlaying" style="font-weight:700;margin-bottom:6px;">تشغيل صوتي</div>
                 <audio id="audioPlayer" controls style="width:100%;max-width:520px;"></audio>
               </div>
             </div>
@@ -380,11 +400,19 @@ jobs:
           <div class="modal-backdrop" id="settingsModal">
             <div class="modal">
               <h2>
-                <span>&#9881; إعدادات Mg Cinema</span>
+                <span>&#9881; إعدادات الجهاز والسيرفر</span>
                 <button class="icon-btn" style="width:32px;height:32px;" onclick="closeSettings()">&#10005;</button>
               </h2>
               <div class="setting-row">
-                <label><strong>&#127912; لون الهوية (Accent Color):</strong></label>
+                <label><strong>&#128241; اسم هذا الجهاز (يظهر عند البث/الاتصال):</strong></label>
+                <input type="text" class="input-field" id="deviceNameInput" placeholder="مثال: Galaxy Note 3">
+              </div>
+              <div class="setting-row">
+                <label><strong>&#127760; رابط السيرفر النشط (IP + المنفذ):</strong></label>
+                <input type="text" class="input-field" id="serverUrlInput" value="http://192.168.1.200:8080">
+              </div>
+              <div class="setting-row">
+                <label><strong>&#127912; لون الهوية:</strong></label>
                 <div class="swatches">
                   <div class="swatch" style="background:#e50914" onclick="setAccent('#e50914','rgba(229,9,20,0.35)')"></div>
                   <div class="swatch" style="background:#00d2ff" onclick="setAccent('#00d2ff','rgba(0,210,255,0.35)')"></div>
@@ -394,36 +422,28 @@ jobs:
                 </div>
               </div>
               <div class="setting-row">
-                <label><strong>&#127760; رابط السيرفر المحلي:</strong></label>
-                <input type="text" class="input-field" id="serverUrlInput" value="http://192.168.1.200:8080">
-              </div>
-              <div class="setting-row">
                 <label style="display:flex;align-items:center;justify-content:space-between;">
                   <strong>&#128274; قفل التطبيق بكلمة سر (PIN):</strong>
                   <input type="checkbox" id="pinEnabledToggle" style="width:20px;height:20px;">
                 </label>
-                <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="أدخل رمزاً جديداً من 4 أرقام لتغييره (الافتراضي 1234)">
+                <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="رمز جديد من 4 أرقام (الافتراضي 1234)">
                 <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
-              </div>
-              <div class="setting-row">
-                <label><strong>&#9201; مؤقت النوم (إيقاف التشغيل تلقائياً):</strong></label>
-                <select class="input-field" id="sleepTimerSelect" onchange="setSleepTimer(this.value)">
-                  <option value="0">إيقاف المؤقت</option>
-                  <option value="15">بعد 15 دقيقة</option>
-                  <option value="30">بعد 30 دقيقة</option>
-                  <option value="60">بعد 60 دقيقة</option>
-                </select>
               </div>
             </div>
           </div>
 
           <script>
-            const SERVER_DEFAULT = localStorage.getItem('serverUrl') || 'http://192.168.1.200:8080';
+            const DEFAULT_URL = 'http://192.168.1.200:8080';
             if (!localStorage.getItem('appPin')) localStorage.setItem('appPin', '1234');
+            if (!localStorage.getItem('deviceName')) localStorage.setItem('deviceName', 'جهازي الحالي');
+
+            let servers = JSON.parse(localStorage.getItem('serversList') || 'null') || [
+              { id: 'note3', name: 'Galaxy Note 3 Server', url: DEFAULT_URL, online: true }
+            ];
+            let activeServerId = localStorage.getItem('activeServerId') || servers[0].id;
             let favs = JSON.parse(localStorage.getItem('favs') || '[]');
             let currentCat = 'all';
 
-            // Detect Android TV / TV boxes (never use mini-player on Android TV)
             function isAndroidTV() {
               const ua = navigator.userAgent || '';
               const tvUA = /Android TV|BRAVIA|AFT|FireTV|SmartTV|GoogleTV|TV/i.test(ua);
@@ -432,10 +452,115 @@ jobs:
             }
             const TV_MODE = isAndroidTV();
 
+            function getActiveServer() {
+              return servers.find(s => s.id === activeServerId) || servers[0] || { name: 'Server', url: DEFAULT_URL, online: true };
+            }
+
+            function saveServers() {
+              localStorage.setItem('serversList', JSON.stringify(servers));
+              localStorage.setItem('activeServerId', activeServerId);
+              const srv = getActiveServer();
+              localStorage.setItem('serverUrl', srv.url);
+              document.getElementById('activeServerLabel').textContent = `${srv.name} (${srv.url.replace(/^https?:\/\//, '')})`;
+              document.getElementById('frameTitle').innerHTML = `&#128225; ${srv.name} — تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق`;
+              renderServers();
+            }
+
+            function renderServers() {
+              const list = document.getElementById('serverList');
+              list.innerHTML = '';
+              servers.forEach(srv => {
+                const div = document.createElement('div');
+                div.className = 'srv-card' + (srv.id === activeServerId ? ' active' : '');
+                div.innerHTML = `
+                  <div class="srv-meta">
+                    <strong>${srv.online ? '🟢' : '⚪'} ${srv.name}</strong>
+                    <small>${srv.url}</small>
+                  </div>
+                  <span style="font-size:0.8rem;color:var(--accent);font-weight:700;">${srv.id === activeServerId ? 'محدد' : 'اختيار'}</span>
+                `;
+                div.onclick = () => {
+                  activeServerId = srv.id;
+                  saveServers();
+                };
+                list.appendChild(div);
+              });
+            }
+
+            function addManualServerPrompt() {
+              const name = prompt('أدخل اسم الجهاز الباث (مثال: جوال 2):', `جهاز بث ${servers.length + 1}`);
+              if (!name) return;
+              const rawUrl = prompt('أدخل عنوان السيرفر (مثال: http://192.168.1.201:8080):', 'http://192.168.1.201:8080');
+              if (!rawUrl) return;
+              const cleanUrl = rawUrl.trim().replace(/\/+$/, '');
+              const fullUrl = /^https?:\/\//i.test(cleanUrl) ? cleanUrl : 'http://' + cleanUrl;
+              const id = 'srv-' + Date.now();
+              servers.push({ id, name: name.trim(), url: fullUrl, online: true });
+              activeServerId = id;
+              saveServers();
+            }
+
+            async function probeServer(url) {
+              const controller = new AbortController();
+              const timer = setTimeout(() => controller.abort(), 900);
+              try {
+                await fetch(`${url}/?probe=${Date.now()}`, { mode: 'no-cors', signal: controller.signal });
+                clearTimeout(timer);
+                return true;
+              } catch (_) {
+                clearTimeout(timer);
+                return false;
+              }
+            }
+
+            async function scanLocalServers() {
+              const statusEl = document.getElementById('scanStatus');
+              statusEl.textContent = 'جاري البحث عن السيرفرات المتصلة في الشبكة...';
+
+              const currentUrl = getActiveServer().url;
+              const match = currentUrl.match(/^(https?:\/\/)(\d+\.\d+\.\d+)\.(\d+)(:\d+)?/i);
+              const candidates = [];
+
+              // Always probe saved servers first
+              servers.forEach(s => candidates.push({ name: s.name, url: s.url, existingId: s.id }));
+
+              if (match) {
+                const proto = match[1];
+                const subnet = match[2];
+                const port = match[4] || ':8080';
+                const commonHosts = [1, 2, 10, 20, 50, 100, 101, 102, 150, 200, 201, 202, 254];
+                commonHosts.forEach(h => {
+                  const candidateUrl = `${proto}${subnet}.${h}${port}`;
+                  if (!candidates.some(c => c.url === candidateUrl)) {
+                    candidates.push({ name: `جهاز (${subnet}.${h})`, url: candidateUrl, existingId: null });
+                  }
+                });
+              }
+
+              for (const c of candidates) {
+                const ok = await probeServer(c.url);
+                if (ok) {
+                  const found = servers.find(s => s.url === c.url);
+                  if (found) {
+                    found.online = true;
+                  } else {
+                    servers.push({ id: 'scan-' + c.url, name: c.name, url: c.url, online: true });
+                  }
+                } else {
+                  const found = servers.find(s => s.url === c.url);
+                  if (found && found.url !== DEFAULT_URL) found.online = false;
+                }
+              }
+
+              saveServers();
+              const onlineCount = servers.filter(s => s.online).length;
+              statusEl.textContent = `تم الفحص — الأجهزة النشطة: ${onlineCount}`;
+            }
+
             const items = [
-              { id: 'srv-root', title: 'تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق', desc: 'استعراض جميع المجلدات والملفات على السيرفر المحلي', type: 'video', icon: '&#128194;', url: '' },
-              { id: 'srv-video', title: 'مكتبة الفيديو', desc: 'مشاهدة مقاطع الفيديو مباشرة من سيرفر الجوال', type: 'video', icon: '&#127916;', url: '/video' },
-              { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'تشغيل مستمر مع تسريع ونافذة مصغرة عند الرجوع', type: 'audio', icon: '&#127925;', url: '/music' }
+              { id: 'srv-root', title: 'تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق', desc: 'استعراض جميع المجلدات والملفات على السيرفر المختار', type: 'video', icon: '&#128194;', url: '' },
+              { id: 'srv-video', title: 'مكتبة الفيديو', desc: 'مشاهدة الفيديو مع تسريع ونافذة مصغرة عند الرجوع', type: 'video', icon: '&#127916;', url: '/video' },
+              { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'استمرار الصوت عند الرجوع وعند قفل الشاشة', type: 'audio', icon: '&#127925;', url: '/music' }
             ];
 
             const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -482,11 +607,6 @@ jobs:
                   <h3>${item.title}</h3>
                   <p>${item.desc}</p>
                 `;
-                card.onmousemove = e => {
-                  const r = card.getBoundingClientRect();
-                  card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-                  card.style.setProperty('--my', (e.clientY - r.top) + 'px');
-                };
                 card.onclick = () => openServerModal(item.url);
                 grid.appendChild(card);
               });
@@ -509,19 +629,16 @@ jobs:
               };
             });
 
-            function getServerBase() {
-              return (localStorage.getItem('serverUrl') || SERVER_DEFAULT).replace(/\/+$/, '');
-            }
-
             function openServerModal(subPath = '') {
-              const base = getServerBase();
+              const base = getActiveServer().url.replace(/\/+$/, '');
               document.getElementById('serverIframe').src = base + subPath;
               document.getElementById('serverFrameWrap').classList.add('open');
             }
 
             function reloadServerFrame() {
               const frame = document.getElementById('serverIframe');
-              frame.src = frame.src && frame.src !== 'about:blank' ? frame.src : getServerBase();
+              const base = getActiveServer().url.replace(/\/+$/, '');
+              frame.src = frame.src && frame.src !== 'about:blank' ? frame.src : base;
             }
 
             function closeServerModal() {
@@ -548,28 +665,25 @@ jobs:
               return !!(el && el.src && !el.ended);
             }
 
-            function getActiveMediaEl() {
-              return activeMediaType === 'audio' ? audioPlayer : videoPlayer;
-            }
-
             function playMedia(url, title, type = 'video') {
               activeMediaType = type;
               document.getElementById('playerTitle').textContent = title || 'المشغل';
               document.getElementById('audioNowPlaying').textContent = title || 'تشغيل صوتي';
+              const rate = parseFloat(document.getElementById('speedSelect').value || '1');
 
               if (type === 'audio') {
                 videoPlayer.pause();
                 videoPlayer.removeAttribute('src');
                 audioPlayer.src = url;
+                audioPlayer.playbackRate = rate;
                 playerShell.className = 'player-shell full audio-mode';
-                audioPlayer.playbackRate = parseFloat(document.getElementById('speedSelect').value || '1');
                 audioPlayer.play().catch(() => {});
               } else {
                 audioPlayer.pause();
                 audioPlayer.removeAttribute('src');
                 videoPlayer.src = url;
+                videoPlayer.playbackRate = rate;
                 playerShell.className = 'player-shell full';
-                videoPlayer.playbackRate = parseFloat(document.getElementById('speedSelect').value || '1');
                 videoPlayer.play().catch(() => {});
               }
             }
@@ -607,6 +721,7 @@ jobs:
               playerShell.className = 'player-shell';
             }
 
+            // Back button keeps media running in mini-player so user can search/browse (except Android TV)
             document.addEventListener('backbutton', e => {
               if (playerShell.classList.contains('full')) {
                 e.preventDefault();
@@ -625,7 +740,9 @@ jobs:
             }, false);
 
             function openSettings() {
-              document.getElementById('serverUrlInput').value = getServerBase();
+              const srv = getActiveServer();
+              document.getElementById('deviceNameInput').value = localStorage.getItem('deviceName') || '';
+              document.getElementById('serverUrlInput').value = srv.url;
               document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
               document.getElementById('settingsModal').classList.add('open');
             }
@@ -633,8 +750,17 @@ jobs:
             document.getElementById('settingsBtn').onclick = openSettings;
 
             function saveSettings() {
-              const url = document.getElementById('serverUrlInput').value.trim();
-              if (url) localStorage.setItem('serverUrl', url);
+              const devName = document.getElementById('deviceNameInput').value.trim();
+              if (devName) localStorage.setItem('deviceName', devName);
+
+              const rawUrl = document.getElementById('serverUrlInput').value.trim().replace(/\/+$/, '');
+              if (rawUrl) {
+                const fullUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : 'http://' + rawUrl;
+                const srv = getActiveServer();
+                srv.url = fullUrl;
+                if (devName && srv.id === 'note3') srv.name = devName;
+              }
+
               const pinEnabled = document.getElementById('pinEnabledToggle').checked;
               localStorage.setItem('pinEnabled', pinEnabled);
               const newPin = document.getElementById('newPinInput').value.trim();
@@ -642,19 +768,8 @@ jobs:
                 localStorage.setItem('appPin', newPin);
                 document.getElementById('newPinInput').value = '';
               }
+              saveServers();
               closeSettings();
-            }
-
-            let sleepTimeout = null;
-            function setSleepTimer(mins) {
-              clearTimeout(sleepTimeout);
-              const m = parseInt(mins, 10);
-              if (m > 0) {
-                sleepTimeout = setTimeout(() => {
-                  videoPlayer.pause();
-                  audioPlayer.pause();
-                }, m * 60000);
-              }
             }
 
             let enteredPin = '';
@@ -688,6 +803,7 @@ jobs:
             }
 
             initLockScreen();
+            saveServers();
             renderGrid();
           </script>
         </body>
