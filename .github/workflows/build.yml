@@ -243,18 +243,15 @@ jobs:
               display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
               width: 100vw; height: 100vh; border-radius: 0; border: none;
             }
+            .player-shell.full .player-top { display: none; }
             .player-shell.mini {
               display: flex; left: 12px; right: 12px; bottom: 12px; width: auto; height: 84px;
               border-radius: 16px; border: 1.5px solid var(--accent); flex-direction: row; align-items: center;
               background: rgba(16, 16, 24, 0.96); backdrop-filter: blur(14px);
             }
             .player-top {
-              position: absolute; top: 0; left: 0; right: 0; z-index: 10;
               display: flex; align-items: center; justify-content: space-between; gap: 8px;
-              padding: 8px 12px; background: rgba(10,10,16,0.78); color: #fff; font-size: 0.84rem;
-            }
-            .player-shell.mini .player-top {
-              position: static; flex: 1; background: transparent; padding: 6px 10px; min-width: 0;
+              padding: 6px 10px; background: transparent; color: #fff; font-size: 0.84rem; flex: 1; min-width: 0;
             }
             .player-controls { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
             .player-controls button, .player-controls select {
@@ -267,8 +264,8 @@ jobs:
               justify-content: center; align-items: center; background: #000; position: relative;
             }
             .player-shell.mini .player-body { flex: 0 0 116px; width: 116px; height: 100%; border-radius: 12px; overflow: hidden; margin-right: 8px; }
-            .player-shell video { width: 100%; height: 100%; max-width: 100vw; max-height: 100vh; object-fit: contain; background: #000; }
-            .player-shell.mini video { object-fit: cover; }
+            .player-shell video { width: 100vw; height: 100vh; object-fit: cover; background: #000; }
+            .player-shell.mini video { width: 100%; height: 100%; object-fit: cover; }
             .audio-stage { display: none; width: 100%; padding: 18px; text-align: center; color: #fff; }
             .player-shell.audio-mode .audio-stage { display: block; }
             .player-shell.audio-mode video { display: none; }
@@ -441,6 +438,10 @@ jobs:
                 <input type="text" class="input-field" id="serverUrlInput" value="http://192.168.1.200:8080">
               </div>
               <div class="setting-row">
+                <label><strong>&#128273; كلمة مرور السيرفر (إذا فعّلتها في index.php مثل 1):</strong></label>
+                <input type="text" class="input-field" id="serverPassInput" placeholder="اتركها فارغة إذا كانت بدون كلمة مرور">
+              </div>
+              <div class="setting-row">
                 <label style="display:flex;align-items:center;justify-content:space-between;">
                   <strong>&#128274; قفل التطبيق بكلمة سر (PIN):</strong>
                   <input type="checkbox" id="pinEnabledToggle" style="width:20px;height:20px;">
@@ -575,6 +576,23 @@ jobs:
               return baseUrl.replace(/\/+$/, '') + '/' + rawSrc.replace(/^\/+/, '');
             }
 
+            async function fetchDirectoryHtml(endpoint) {
+              const srvPass = localStorage.getItem('serverPass') || '';
+              if (srvPass) {
+                const body = new URLSearchParams({ password: srvPass });
+                const postRes = await fetch(endpoint, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: body.toString(),
+                  cache: 'no-store'
+                });
+                const postHtml = await postRes.text();
+                if (!postHtml.includes('قفل السيرفر')) return postHtml;
+              }
+              const res = await fetch(endpoint, { cache: 'no-store' });
+              return await res.text();
+            }
+
             async function loadServerDirectory(dir = '') {
               currentDir = dir;
               const base = getActiveServer().url.replace(/\/+$/, '');
@@ -593,8 +611,15 @@ jobs:
               const endpoint = currentDir ? `${base}/index.php?dir=${encodeURIComponent(currentDir)}` : `${base}/index.php`;
 
               try {
-                const res = await fetch(endpoint, { cache: 'no-store' });
-                const htmlText = await res.text();
+                const htmlText = await fetchDirectoryHtml(endpoint);
+                if (htmlText.includes('قفل السيرفر')) {
+                  libraryItems = [];
+                  updateCategoryCounts();
+                  statusEl.textContent = 'السيرفر مقفل بكلمة مرور — أدخلها في الإعدادات (الترس) أو اترك $correct_password = "" في index.php';
+                  renderMediaGrid();
+                  return;
+                }
+
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
                 const parsed = [];
@@ -882,6 +907,7 @@ jobs:
               const srv = getActiveServer();
               document.getElementById('deviceNameInput').value = srv.name;
               document.getElementById('serverUrlInput').value = srv.url;
+              document.getElementById('serverPassInput').value = localStorage.getItem('serverPass') || '';
               document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
               document.getElementById('settingsModal').classList.add('open');
             }
@@ -891,6 +917,9 @@ jobs:
             function saveSettings() {
               const devName = document.getElementById('deviceNameInput').value.trim();
               const rawUrl = document.getElementById('serverUrlInput').value.trim().replace(/\/+$/, '');
+              const srvPass = document.getElementById('serverPassInput').value;
+              localStorage.setItem('serverPass', srvPass);
+
               const srv = getActiveServer();
               if (devName) srv.name = devName;
               if (rawUrl) srv.url = /^https?:\/\//i.test(rawUrl) ? rawUrl : 'http://' + rawUrl;
