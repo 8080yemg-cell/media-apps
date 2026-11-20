@@ -26,26 +26,26 @@ jobs:
         export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
 
         sudo npm install -g cordova@12.0.0
-        cordova create myApp com.mg.cinema "Mg Cinema"
+        cordova create myApp com.magai.mgcinema "Mg Cinema"
         cd myApp
         cordova platform add android@13.0.0
 
-        ICON_FOUND=""
-        for f in ../*.png ../*.jpg ../*.jpeg ../*.webp ../../*.png; do
-          if [ -f "$f" ]; then
-            ICON_FOUND="$f"
+        ICON_SRC=""
+        for candidate in "../Mg_Cinema_icon_8_transparent.png" "../icon.png" "../app-icon.png" ../*.png ../*.jpg ../*.jpeg ../*.webp; do
+          if [ -f "$candidate" ]; then
+            ICON_SRC="$candidate"
             break
           fi
         done
 
-        if [ -n "$ICON_FOUND" ]; then
+        if [ -n "$ICON_SRC" ]; then
           mkdir -p res/icon/android
-          cp "$ICON_FOUND" res/icon/android/icon.png
-          cp "$ICON_FOUND" www/app-icon.png
+          cp "$ICON_SRC" res/icon/android/icon.png
+          cp "$ICON_SRC" www/app-icon.png
         fi
 
         python3 - << 'PYEOF'
-        import os
+        import os, re
 
         with open("config.xml", "r", encoding="utf-8") as f:
             xml = f.read()
@@ -55,6 +55,11 @@ jobs:
             '<widget xmlns:android="http://schemas.android.com/apk/res/android" ',
             1
         )
+
+        if "<author" in xml:
+            xml = re.sub(r"<author[^>]*>.*?</author>", '<author email="dev@magai.local">Mag Ai</author>', xml, flags=re.S)
+        else:
+            xml = xml.replace("</widget>", '  <author email="dev@magai.local">Mag Ai</author>\n</widget>', 1)
 
         icon_block = ""
         if os.path.exists("res/icon/android/icon.png"):
@@ -93,7 +98,7 @@ jobs:
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-          <title>Mg Cinema</title>
+          <title>Mg Cinema — Mag Ai</title>
           <style>
             :root {
               --accent: #e50914;
@@ -101,7 +106,7 @@ jobs:
               --bg: #0a0a0e;
               --bg-elevated: #14141c;
               --bg-card: #1a1a24;
-              --glass: rgba(20, 20, 28, 0.78);
+              --glass: rgba(20, 20, 28, 0.85);
               --text: #f5f5f7;
               --text-muted: #9a9aa6;
               --border: rgba(255, 255, 255, 0.08);
@@ -112,106 +117,97 @@ jobs:
               --bg: #f3f4f8;
               --bg-elevated: #ffffff;
               --bg-card: #ffffff;
-              --glass: rgba(255, 255, 255, 0.85);
+              --glass: rgba(255, 255, 255, 0.9);
               --text: #12131a;
               --text-muted: #5c5f6e;
               --border: rgba(0, 0, 0, 0.08);
               --shadow: 0 10px 28px rgba(15, 20, 40, 0.08);
             }
             * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; }
-            body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.35s ease, color 0.35s ease; }
+            body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
             .navbar {
               position: sticky; top: 0; z-index: 50;
-              display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-              padding: 12px 18px; background: var(--glass); backdrop-filter: blur(16px);
+              display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+              padding: 12px 16px; background: var(--glass); backdrop-filter: blur(16px);
               border-bottom: 1px solid var(--border);
             }
-            .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; }
-            .brand-logo { width: 32px; height: 32px; border-radius: 8px; object-fit: contain; background: #14141c; padding: 2px; }
+            .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; }
+            .brand-logo { width: 34px; height: 34px; border-radius: 10px; object-fit: contain; background: #14141c; padding: 2px; }
+            .dev-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; background: rgba(229,9,20,0.16); color: #ff6b72; border: 1px solid rgba(229,9,20,0.35); }
             .server-chip {
-              font-size: 0.76rem; padding: 5px 11px; border-radius: 99px;
+              font-size: 0.75rem; padding: 5px 10px; border-radius: 99px;
               background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
-              display: flex; align-items: center; gap: 7px; cursor: pointer;
+              display: flex; align-items: center; gap: 6px; cursor: pointer;
             }
-            .server-chip:hover { border-color: var(--accent); }
             .status-led { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
-            .search-box { flex: 1; min-width: 200px; max-width: 400px; position: relative; }
+            .search-box { flex: 1; min-width: 190px; max-width: 380px; position: relative; }
             .search-box input {
-              width: 100%; padding: 10px 38px 10px 14px; border-radius: 99px;
+              width: 100%; padding: 9px 36px 9px 14px; border-radius: 99px;
               border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
               outline: none; font-size: 0.9rem;
             }
-            .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-            .search-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
-            .nav-actions { display: flex; align-items: center; gap: 8px; }
+            .search-box input:focus { border-color: var(--accent); }
+            .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); opacity: 0.65; pointer-events: none; }
+            .nav-actions { display: flex; align-items: center; gap: 7px; }
             .icon-btn {
               width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border);
               background: var(--bg-card); color: var(--text); cursor: pointer;
               display: grid; place-items: center; font-size: 1.05rem;
             }
-            .icon-btn:hover, .icon-btn:focus { border-color: var(--accent); outline: none; }
-
-            .container { max-width: 1320px; margin: 0 auto; padding: 18px 20px 130px; }
+            .container { max-width: 1320px; margin: 0 auto; padding: 16px 18px 150px; }
             .hero {
-              position: relative; border-radius: 22px; padding: 24px; margin-bottom: 20px;
+              border-radius: 20px; padding: 20px; margin-bottom: 18px;
               background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
-              border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden;
+              border: 1px solid var(--border); box-shadow: var(--shadow);
             }
-            .hero h1 { font-size: 1.55rem; margin-bottom: 8px; }
-            .hero p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 14px; }
-            .hero-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+            .hero h1 { font-size: 1.38rem; margin-bottom: 6px; }
+            .hero p { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 12px; }
+            .hero-btns { display: flex; flex-wrap: wrap; gap: 8px; }
             .btn-primary {
-              padding: 10px 18px; border-radius: 12px; border: none; background: var(--accent); color: #fff;
-              font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow);
+              padding: 9px 16px; border-radius: 12px; border: none; background: var(--accent); color: #fff;
+              font-weight: 700; cursor: pointer; box-shadow: 0 6px 18px var(--accent-glow);
             }
             .btn-secondary {
-              padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-elevated);
+              padding: 9px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-elevated);
               color: var(--text); font-weight: 600; cursor: pointer;
             }
-            .btn-secondary:hover { border-color: var(--accent); }
-
-            /* Servers Bar */
             .servers-panel {
               background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 18px;
-              padding: 16px; margin-bottom: 20px;
+              padding: 14px; margin-bottom: 18px;
             }
-            .servers-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-            .server-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+            .servers-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+            .server-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
             .srv-card {
               background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
-              padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer;
+              padding: 11px; display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer;
             }
-            .srv-card.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
-            .srv-meta small { color: var(--text-muted); display: block; margin-top: 3px; }
-
-            .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 14px; }
+            .srv-card.active { border-color: var(--accent); }
+            .srv-meta small { color: var(--text-muted); display: block; margin-top: 2px; }
+            .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; }
             .tab {
-              padding: 8px 16px; border-radius: 99px; border: 1px solid var(--border);
+              padding: 8px 15px; border-radius: 99px; border: 1px solid var(--border);
               background: var(--bg-card); color: var(--text-muted); cursor: pointer; white-space: nowrap; font-weight: 600;
             }
             .tab.active, .tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+            .section-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
             .card {
               position: relative; border-radius: var(--radius); background: var(--bg-card);
-              border: 1px solid var(--border); padding: 16px; cursor: pointer; overflow: hidden;
+              border: 1px solid var(--border); padding: 14px; cursor: pointer;
               transition: transform 0.2s ease, border-color 0.2s ease;
             }
-            .card:hover, .card:focus { transform: translateY(-4px); border-color: var(--accent); outline: none; }
+            .card:hover, .card:focus { transform: translateY(-3px); border-color: var(--accent); outline: none; }
             .card-thumb {
-              height: 115px; border-radius: 12px; margin-bottom: 10px;
-              background: rgba(255,255,255,0.03); display: grid; place-items: center; font-size: 2.2rem; position: relative;
+              height: 110px; border-radius: 12px; margin-bottom: 10px;
+              background: rgba(255,255,255,0.03); display: grid; place-items: center; font-size: 2.1rem; position: relative; overflow: hidden;
             }
+            .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
             .card-type {
-              position: absolute; top: 8px; left: 8px; font-size: 0.7rem; padding: 3px 8px;
-              border-radius: 8px; background: rgba(0,0,0,0.65); color: #fff;
+              position: absolute; top: 8px; left: 8px; font-size: 0.7rem; padding: 2px 8px;
+              border-radius: 8px; background: rgba(0,0,0,0.7); color: #fff;
             }
-            .fav-btn {
-              position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%;
-              border: none; background: rgba(0,0,0,0.55); color: #fff; cursor: pointer;
-            }
-            .card h3 { font-size: 0.98rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .card p { font-size: 0.82rem; color: var(--text-muted); }
+            .card h3 { font-size: 0.94rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .card p { font-size: 0.8rem; color: var(--text-muted); }
 
             .server-frame-wrap {
               display: none; position: fixed; inset: 0; z-index: 80; background: var(--bg);
@@ -219,39 +215,46 @@ jobs:
             }
             .server-frame-wrap.open { display: flex; }
             .frame-bar {
-              display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+              display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
               padding: 10px 14px; background: var(--bg-elevated); border-bottom: 1px solid var(--border);
             }
             .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
 
-            /* Persistent Player + Mini-Player */
+            /* YouTube / X / VK style live persistent player */
             .player-shell {
-              position: fixed; z-index: 95; background: #0b0b10; border: 1px solid var(--border);
-              box-shadow: 0 20px 50px rgba(0,0,0,0.85); overflow: hidden;
+              position: fixed; z-index: 95; background: #0c0c12; border: 1px solid var(--border);
+              box-shadow: 0 18px 45px rgba(0,0,0,0.85); overflow: hidden;
               transition: all 0.25s ease; display: none; flex-direction: column;
             }
             .player-shell.full { display: flex; inset: 0; border-radius: 0; }
             .player-shell.mini {
-              display: flex; bottom: 14px; left: 14px; width: 320px; height: 205px;
-              border-radius: 16px; border: 2px solid var(--accent);
+              display: flex; left: 12px; right: 12px; bottom: 12px; width: auto; height: 84px;
+              border-radius: 16px; border: 1.5px solid var(--accent); flex-direction: row; align-items: center;
+              background: rgba(16, 16, 24, 0.96); backdrop-filter: blur(14px);
             }
-            .player-shell.mini.audio-mode { height: 120px; width: 330px; }
             .player-top {
               display: flex; align-items: center; justify-content: space-between; gap: 8px;
               padding: 8px 12px; background: rgba(15,15,22,0.95); color: #fff; font-size: 0.84rem;
             }
-            .player-controls { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+            .player-shell.mini .player-top {
+              flex: 1; background: transparent; padding: 6px 10px; min-width: 0;
+            }
+            .player-controls { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
             .player-controls button, .player-controls select {
               background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.14); color: #fff;
-              padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; outline: none;
+              padding: 5px 8px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; outline: none;
             }
             .player-controls select option { background: #14141c; color: #fff; }
-            .player-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; }
+            .player-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; position: relative; }
+            .player-shell.mini .player-body { flex: 0 0 116px; width: 116px; height: 100%; border-radius: 12px; overflow: hidden; margin-right: 8px; }
             .player-shell video { width: 100%; height: 100%; object-fit: contain; background: #000; }
-            .audio-stage { display: none; width: 100%; padding: 12px; text-align: center; color: #fff; }
+            .player-shell.mini video { object-fit: cover; }
+            .audio-stage { display: none; width: 100%; padding: 14px; text-align: center; color: #fff; }
             .player-shell.audio-mode .audio-stage { display: block; }
             .player-shell.audio-mode video { display: none; }
-            .player-shell.mini .audio-icon { display: none; }
+            .player-shell.mini.audio-mode .player-body { width: 54px; flex: 0 0 54px; background: rgba(229,9,20,0.18); }
+            .player-shell.mini.audio-mode .audio-stage { padding: 4px; }
+            .player-shell.mini.audio-mode .audio-title, .player-shell.mini.audio-mode audio { display: none; }
 
             .modal-backdrop {
               display: none; position: fixed; inset: 0; z-index: 110;
@@ -267,8 +270,6 @@ jobs:
             .modal h2 { margin-bottom: 12px; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; }
             .setting-row { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
             .setting-row:last-child { border-bottom: none; }
-            .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
-            .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; }
             .input-field {
               width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
               background: var(--bg-card); color: var(--text); outline: none;
@@ -307,40 +308,39 @@ jobs:
             <div class="brand">
               <img class="brand-logo" src="app-icon.png" onerror="this.style.display='none'" alt="Mg Cinema">
               <span>Mg Cinema</span>
+              <span class="dev-tag">Mag Ai</span>
               <button class="server-chip" id="activeServerChip" onclick="scanLocalServers()">
                 <span class="status-led"></span>
-                <span id="activeServerLabel">Note 3 Server (192.168.1.200:8080)</span>
+                <span id="activeServerLabel">Galaxy Note 3 Server (192.168.1.200:8080)</span>
               </button>
             </div>
             <div class="search-box">
               <span class="search-icon">&#128269;</span>
-              <input type="text" id="searchInput" placeholder="ابحث في الفيديو، الموسيقى، السيرفرات...">
+              <input type="text" id="searchInput" placeholder="ابحث في المجلدات، الفيديو، الصوتيات...">
             </div>
             <div class="nav-actions">
               <button class="icon-btn" id="themeToggle" title="تبديل الفاتح / الداكن">&#127763;</button>
-              <button class="icon-btn" id="openServerBtn" title="تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق">&#127760;</button>
-              <button class="icon-btn" id="settingsBtn" title="الإعدادات والألوان وكلمة السر">&#9881;</button>
+              <button class="icon-btn" id="openServerBtn" title="فتح صفحة السيرفر الكاملة">&#127760;</button>
+              <button class="icon-btn" id="settingsBtn" title="الإعدادات والقفل">&#9881;</button>
             </div>
           </header>
 
           <main class="container">
             <section class="hero">
-              <span class="hero-tag">MG CINEMA • LOCAL MULTI-SERVER</span>
-              <h1>تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</h1>
-              <p>ابحث عن الأجهزة المتصلة بالشبكة، اختر الجهاز الباث بالاسم، وشغّل الفيديو والصوت مع تسريع ونافذة مصغرة مستمرة عند الرجوع.</p>
+              <h1>مكتبة الوسائط — Mg Cinema</h1>
+              <p>المطور: <strong>Mag Ai</strong> — استعرض المجلدات وشغّل الفيديو والصوت مع تسريع ونافذة مصغرة مستمرة أثناء تصفح باقي الملفات.</p>
               <div class="hero-btns">
-                <button class="btn-primary" onclick="openServerModal('')">&#9654; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</button>
+                <button class="btn-primary" onclick="loadServerDirectory('')">&#9654; تحميل ملفات ومجلدات السيرفر</button>
                 <button class="btn-secondary" onclick="scanLocalServers()">&#128225; البحث عن السيرفرات المتصلة</button>
-                <button class="btn-secondary" onclick="openSettings()">&#127912; إعدادات الجهاز والقفل</button>
+                <button class="btn-secondary" onclick="openServerModal('')">&#127760; عرض صفحة الويب</button>
               </div>
             </section>
 
-            <!-- Connected Servers Selector -->
             <section class="servers-panel">
               <div class="servers-head">
                 <div>
                   <strong>&#128246; السيرفرات والأجهزة المتصلة</strong>
-                  <span style="color:var(--text-muted);font-size:0.82rem;margin-right:8px;" id="scanStatus">اضغط بحث لفحص الشبكة المحلية</span>
+                  <span style="color:var(--text-muted);font-size:0.82rem;margin-right:8px;" id="scanStatus">جاهز للفحص أو الاختيار</span>
                 </div>
                 <div style="display:flex;gap:8px;">
                   <button class="btn-secondary" style="padding:7px 12px;" onclick="scanLocalServers()">بحث تلقائي</button>
@@ -352,9 +352,17 @@ jobs:
 
             <div class="tabs" id="categoryTabs">
               <button class="tab active" data-cat="all">الكل</button>
+              <button class="tab" data-cat="folder">المجلدات</button>
               <button class="tab" data-cat="video">فيديو</button>
               <button class="tab" data-cat="audio">موسيقى وصوتيات</button>
-              <button class="tab" data-cat="fav">المفضلة &#11088;</button>
+            </div>
+
+            <div class="section-bar">
+              <div>
+                <strong id="currentDirLabel">المسار الحالي: /</strong>
+                <span style="color:var(--text-muted);font-size:0.82rem;margin-right:8px;" id="libraryStatus"></span>
+              </div>
+              <button class="btn-secondary" id="backDirBtn" style="display:none;padding:6px 12px;" onclick="goParentDir()">⬅ مجلد سابق</button>
             </div>
 
             <div class="grid" id="mediaGrid"></div>
@@ -362,19 +370,28 @@ jobs:
 
           <div class="server-frame-wrap" id="serverFrameWrap">
             <div class="frame-bar">
-              <strong id="frameTitle">&#128225; تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق</strong>
+              <strong id="frameTitle">&#128225; صفحة السيرفر</strong>
               <div style="display:flex;gap:8px;">
                 <button class="btn-secondary" style="padding:6px 12px;" onclick="reloadServerFrame()">تحديث</button>
-                <button class="btn-primary" style="padding:6px 14px;" onclick="closeServerModal()">رجوع للواجهة &#10005;</button>
+                <button class="btn-primary" style="padding:6px 14px;" onclick="closeServerModal()">رجوع &#10005;</button>
               </div>
             </div>
             <iframe id="serverIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
           </div>
 
           <div class="player-shell" id="playerShell">
+            <div class="player-body">
+              <video id="videoPlayer" controls playsinline></video>
+              <div class="audio-stage" id="audioStage">
+                <div style="font-size:2rem;margin-bottom:4px;">&#127925;</div>
+                <div class="audio-title" id="audioNowPlaying" style="font-weight:700;margin-bottom:6px;">تشغيل صوتي</div>
+                <audio id="audioPlayer" controls style="width:100%;max-width:520px;"></audio>
+              </div>
+            </div>
             <div class="player-top">
-              <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:145px;">المشغل</span>
+              <span id="playerTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">المشغل</span>
               <div class="player-controls">
+                <button id="playPauseMiniBtn" onclick="togglePlayPause()" title="تشغيل / إيقاف مؤقت">⏯</button>
                 <select id="speedSelect" title="سرعة التشغيل" onchange="setPlaybackSpeed(this.value)">
                   <option value="0.5">0.5x</option>
                   <option value="0.75">0.75x</option>
@@ -383,16 +400,8 @@ jobs:
                   <option value="1.5">1.5x</option>
                   <option value="2">2x</option>
                 </select>
-                <button id="toggleMiniBtn" onclick="toggleMiniPlayer()">مصغرة</button>
+                <button id="toggleMiniBtn" onclick="toggleMiniPlayer()">تصغير/تكبير</button>
                 <button onclick="closePlayer()">&#10005;</button>
-              </div>
-            </div>
-            <div class="player-body">
-              <video id="videoPlayer" controls playsinline></video>
-              <div class="audio-stage" id="audioStage">
-                <div class="audio-icon" style="font-size:2.4rem;margin-bottom:6px;">&#127925;</div>
-                <div id="audioNowPlaying" style="font-weight:700;margin-bottom:6px;">تشغيل صوتي</div>
-                <audio id="audioPlayer" controls style="width:100%;max-width:520px;"></audio>
               </div>
             </div>
           </div>
@@ -404,7 +413,7 @@ jobs:
                 <button class="icon-btn" style="width:32px;height:32px;" onclick="closeSettings()">&#10005;</button>
               </h2>
               <div class="setting-row">
-                <label><strong>&#128241; اسم هذا الجهاز (يظهر عند البث/الاتصال):</strong></label>
+                <label><strong>&#128241; اسم الجهاز الباث:</strong></label>
                 <input type="text" class="input-field" id="deviceNameInput" placeholder="مثال: Galaxy Note 3">
               </div>
               <div class="setting-row">
@@ -412,22 +421,12 @@ jobs:
                 <input type="text" class="input-field" id="serverUrlInput" value="http://192.168.1.200:8080">
               </div>
               <div class="setting-row">
-                <label><strong>&#127912; لون الهوية:</strong></label>
-                <div class="swatches">
-                  <div class="swatch" style="background:#e50914" onclick="setAccent('#e50914','rgba(229,9,20,0.35)')"></div>
-                  <div class="swatch" style="background:#00d2ff" onclick="setAccent('#00d2ff','rgba(0,210,255,0.35)')"></div>
-                  <div class="swatch" style="background:#8b5cf6" onclick="setAccent('#8b5cf6','rgba(139,92,246,0.35)')"></div>
-                  <div class="swatch" style="background:#10b981" onclick="setAccent('#10b981','rgba(16,185,129,0.35)')"></div>
-                  <div class="swatch" style="background:#f59e0b" onclick="setAccent('#f59e0b','rgba(245,158,11,0.35)')"></div>
-                </div>
-              </div>
-              <div class="setting-row">
                 <label style="display:flex;align-items:center;justify-content:space-between;">
                   <strong>&#128274; قفل التطبيق بكلمة سر (PIN):</strong>
                   <input type="checkbox" id="pinEnabledToggle" style="width:20px;height:20px;">
                 </label>
                 <input type="password" maxlength="4" class="input-field" id="newPinInput" placeholder="رمز جديد من 4 أرقام (الافتراضي 1234)">
-                <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
+                <button class="btn-primary" onclick="saveSettings()">حفظ وتحميل المكتبة</button>
               </div>
             </div>
           </div>
@@ -435,14 +434,14 @@ jobs:
           <script>
             const DEFAULT_URL = 'http://192.168.1.200:8080';
             if (!localStorage.getItem('appPin')) localStorage.setItem('appPin', '1234');
-            if (!localStorage.getItem('deviceName')) localStorage.setItem('deviceName', 'جهازي الحالي');
 
             let servers = JSON.parse(localStorage.getItem('serversList') || 'null') || [
               { id: 'note3', name: 'Galaxy Note 3 Server', url: DEFAULT_URL, online: true }
             ];
             let activeServerId = localStorage.getItem('activeServerId') || servers[0].id;
-            let favs = JSON.parse(localStorage.getItem('favs') || '[]');
+            let currentDir = '';
             let currentCat = 'all';
+            let libraryItems = [];
 
             function isAndroidTV() {
               const ua = navigator.userAgent || '';
@@ -462,7 +461,7 @@ jobs:
               const srv = getActiveServer();
               localStorage.setItem('serverUrl', srv.url);
               document.getElementById('activeServerLabel').textContent = `${srv.name} (${srv.url.replace(/^https?:\/\//, '')})`;
-              document.getElementById('frameTitle').innerHTML = `&#128225; ${srv.name} — تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق`;
+              document.getElementById('frameTitle').innerHTML = `&#128225; ${srv.name}`;
               renderServers();
             }
 
@@ -482,13 +481,14 @@ jobs:
                 div.onclick = () => {
                   activeServerId = srv.id;
                   saveServers();
+                  loadServerDirectory('');
                 };
                 list.appendChild(div);
               });
             }
 
             function addManualServerPrompt() {
-              const name = prompt('أدخل اسم الجهاز الباث (مثال: جوال 2):', `جهاز بث ${servers.length + 1}`);
+              const name = prompt('أدخل اسم الجهاز الباث:', `جهاز بث ${servers.length + 1}`);
               if (!name) return;
               const rawUrl = prompt('أدخل عنوان السيرفر (مثال: http://192.168.1.201:8080):', 'http://192.168.1.201:8080');
               if (!rawUrl) return;
@@ -498,6 +498,7 @@ jobs:
               servers.push({ id, name: name.trim(), url: fullUrl, online: true });
               activeServerId = id;
               saveServers();
+              loadServerDirectory('');
             }
 
             async function probeServer(url) {
@@ -515,62 +516,174 @@ jobs:
 
             async function scanLocalServers() {
               const statusEl = document.getElementById('scanStatus');
-              statusEl.textContent = 'جاري البحث عن السيرفرات المتصلة في الشبكة...';
-
+              statusEl.textContent = 'جاري البحث عن السيرفرات المتصلة...';
               const currentUrl = getActiveServer().url;
               const match = currentUrl.match(/^(https?:\/\/)(\d+\.\d+\.\d+)\.(\d+)(:\d+)?/i);
-              const candidates = [];
-
-              // Always probe saved servers first
-              servers.forEach(s => candidates.push({ name: s.name, url: s.url, existingId: s.id }));
+              const candidates = servers.map(s => ({ name: s.name, url: s.url }));
 
               if (match) {
                 const proto = match[1];
                 const subnet = match[2];
                 const port = match[4] || ':8080';
-                const commonHosts = [1, 2, 10, 20, 50, 100, 101, 102, 150, 200, 201, 202, 254];
-                commonHosts.forEach(h => {
-                  const candidateUrl = `${proto}${subnet}.${h}${port}`;
-                  if (!candidates.some(c => c.url === candidateUrl)) {
-                    candidates.push({ name: `جهاز (${subnet}.${h})`, url: candidateUrl, existingId: null });
-                  }
+                [1, 2, 10, 20, 50, 100, 101, 102, 150, 200, 201, 202, 254].forEach(h => {
+                  const u = `${proto}${subnet}.${h}${port}`;
+                  if (!candidates.some(c => c.url === u)) candidates.push({ name: `جهاز (${subnet}.${h})`, url: u });
                 });
               }
 
               for (const c of candidates) {
                 const ok = await probeServer(c.url);
+                const found = servers.find(s => s.url === c.url);
                 if (ok) {
-                  const found = servers.find(s => s.url === c.url);
-                  if (found) {
-                    found.online = true;
-                  } else {
-                    servers.push({ id: 'scan-' + c.url, name: c.name, url: c.url, online: true });
-                  }
-                } else {
-                  const found = servers.find(s => s.url === c.url);
-                  if (found && found.url !== DEFAULT_URL) found.online = false;
+                  if (found) found.online = true;
+                  else servers.push({ id: 'scan-' + c.url, name: c.name, url: c.url, online: true });
+                } else if (found && found.url !== DEFAULT_URL) {
+                  found.online = false;
                 }
               }
-
               saveServers();
-              const onlineCount = servers.filter(s => s.online).length;
-              statusEl.textContent = `تم الفحص — الأجهزة النشطة: ${onlineCount}`;
+              statusEl.textContent = `تم الفحص — الأجهزة النشطة: ${servers.filter(s => s.online).length}`;
+              loadServerDirectory(currentDir);
             }
 
-            const items = [
-              { id: 'srv-root', title: 'تصفح ملفات سيرفر الجوال مباشرة داخل التطبيق', desc: 'استعراض جميع المجلدات والملفات على السيرفر المختار', type: 'video', icon: '&#128194;', url: '' },
-              { id: 'srv-video', title: 'مكتبة الفيديو', desc: 'مشاهدة الفيديو مع تسريع ونافذة مصغرة عند الرجوع', type: 'video', icon: '&#127916;', url: '/video' },
-              { id: 'srv-music', title: 'الموسيقى والصوتيات', desc: 'استمرار الصوت عند الرجوع وعند قفل الشاشة', type: 'audio', icon: '&#127925;', url: '/music' }
-            ];
-
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            const savedAccent = localStorage.getItem('accent');
-            const savedGlow = localStorage.getItem('accentGlow');
-            if (savedAccent) {
-              document.documentElement.style.setProperty('--accent', savedAccent);
-              document.documentElement.style.setProperty('--accent-glow', savedGlow);
+            function resolveMediaUrl(baseUrl, rawSrc) {
+              if (!rawSrc) return '';
+              if (/^https?:\/\//i.test(rawSrc)) return rawSrc;
+              return baseUrl.replace(/\/+$/, '') + '/' + rawSrc.replace(/^\/+/, '');
             }
+
+            async function loadServerDirectory(dir = '') {
+              currentDir = dir;
+              const base = getActiveServer().url.replace(/\/+$/, '');
+              const statusEl = document.getElementById('libraryStatus');
+              const dirLabel = document.getElementById('currentDirLabel');
+              const backBtn = document.getElementById('backDirBtn');
+
+              dirLabel.textContent = 'المسار الحالي: /' + (currentDir || '');
+              backBtn.style.display = currentDir ? 'inline-block' : 'none';
+              statusEl.textContent = 'جاري جلب الملفات والمجلدات...';
+
+              // Keep any active media in mini mode when browsing folders
+              if (!TV_MODE && isMediaActive() && playerShell.classList.contains('full')) {
+                setMiniMode(true);
+              }
+
+              const endpoint = currentDir ? `${base}/index.php?dir=${encodeURIComponent(currentDir)}` : `${base}/index.php`;
+
+              try {
+                const res = await fetch(endpoint, { cache: 'no-store' });
+                const htmlText = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                const parsed = [];
+
+                doc.querySelectorAll('a[href*="dir="]').forEach(a => {
+                  const href = a.getAttribute('href') || '';
+                  const match = href.match(/[?&]dir=([^&]+)/);
+                  if (!match) return;
+                  const targetDir = decodeURIComponent(match[1].replace(/\+/g, ' '));
+                  if (targetDir === currentDir) return;
+                  const title = (a.textContent || targetDir).replace('📁', '').trim() || targetDir.split('/').pop();
+                  const thumbImg = a.querySelector('img');
+                  const thumbSrc = thumbImg ? resolveMediaUrl(base, thumbImg.getAttribute('src')) : '';
+                  parsed.push({ type: 'folder', title, dirPath: targetDir, thumb: thumbSrc, badge: 'مجلد' });
+                });
+
+                doc.querySelectorAll('video').forEach(vid => {
+                  const srcEl = vid.querySelector('source');
+                  const rawSrc = (srcEl && srcEl.getAttribute('src')) || vid.getAttribute('src') || '';
+                  if (!rawSrc) return;
+                  const card = vid.closest('.card') || vid.parentElement;
+                  const h3 = card ? card.querySelector('h3') : null;
+                  const title = (h3 ? h3.textContent : rawSrc.split('/').pop()).trim();
+                  parsed.push({ type: 'video', title, url: resolveMediaUrl(base, rawSrc), badge: 'فيديو' });
+                });
+
+                doc.querySelectorAll('audio').forEach(aud => {
+                  const srcEl = aud.querySelector('source');
+                  const rawSrc = (srcEl && srcEl.getAttribute('src')) || aud.getAttribute('src') || '';
+                  if (!rawSrc) return;
+                  const card = aud.closest('.card') || aud.parentElement;
+                  const h3 = card ? card.querySelector('h3') : null;
+                  const title = (h3 ? h3.textContent : rawSrc.split('/').pop()).trim();
+                  parsed.push({ type: 'audio', title, url: resolveMediaUrl(base, rawSrc), badge: 'صوت' });
+                });
+
+                libraryItems = parsed;
+                statusEl.textContent = `تم تحميل ${libraryItems.length} عنصر`;
+                renderMediaGrid();
+              } catch (err) {
+                libraryItems = [];
+                statusEl.textContent = 'تعذر قراءة الملفات تلقائياً (تأكد من تشغيل السيرفر والاتصال بنفس الشبكة)';
+                renderMediaGrid();
+              }
+            }
+
+            function goParentDir() {
+              if (!currentDir) return;
+              const parts = currentDir.split('/').filter(Boolean);
+              parts.pop();
+              loadServerDirectory(parts.join('/'));
+            }
+
+            function renderMediaGrid() {
+              const q = document.getElementById('searchInput').value.trim().toLowerCase();
+              const grid = document.getElementById('mediaGrid');
+              grid.innerHTML = '';
+
+              const filtered = libraryItems.filter(item => {
+                const matchCat = currentCat === 'all' || item.type === currentCat;
+                const matchQ = !q || item.title.toLowerCase().includes(q);
+                return matchCat && matchQ;
+              });
+
+              if (filtered.length === 0) {
+                grid.innerHTML = `
+                  <div class="card" style="grid-column:1/-1;text-align:center;cursor:default;">
+                    <h3>لا توجد عناصر مطابقة في هذا المسار</h3>
+                    <p>تحقق من تشغيل السيرفر على ${getActiveServer().url} أو اضغط "عرض صفحة الويب"</p>
+                  </div>`;
+                return;
+              }
+
+              filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.tabIndex = 0;
+
+                let thumbContent = '🎬';
+                if (item.type === 'folder') {
+                  thumbContent = item.thumb ? `<img src="${item.thumb}" alt="folder">` : '📁';
+                } else if (item.type === 'audio') {
+                  thumbContent = '🎵';
+                }
+
+                card.innerHTML = `
+                  <div class="card-thumb">
+                    <span class="card-type">${item.badge}</span>
+                    <span>${thumbContent}</span>
+                  </div>
+                  <h3>${item.title}</h3>
+                  <p>${item.type === 'folder' ? 'فتح المجلد' : (item.type === 'audio' ? 'تشغيل صوتي' : 'تشغيل فيديو')}</p>
+                `;
+
+                card.onclick = () => {
+                  if (item.type === 'folder') loadServerDirectory(item.dirPath);
+                  else playMedia(item.url, item.title, item.type);
+                };
+                grid.appendChild(card);
+              });
+            }
+
+            document.getElementById('searchInput').oninput = renderMediaGrid;
+            document.querySelectorAll('.tab').forEach(btn => {
+              btn.onclick = () => {
+                document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCat = btn.dataset.cat;
+                renderMediaGrid();
+              };
+            });
 
             document.getElementById('themeToggle').onclick = () => {
               const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -578,67 +691,18 @@ jobs:
               localStorage.setItem('theme', next);
             };
 
-            function setAccent(color, glow) {
-              document.documentElement.style.setProperty('--accent', color);
-              document.documentElement.style.setProperty('--accent-glow', glow);
-              localStorage.setItem('accent', color);
-              localStorage.setItem('accentGlow', glow);
-            }
-
-            function renderGrid() {
-              const q = document.getElementById('searchInput').value.trim().toLowerCase();
-              const grid = document.getElementById('mediaGrid');
-              grid.innerHTML = '';
-              items.filter(item => {
-                const matchCat = currentCat === 'all' || (currentCat === 'fav' ? favs.includes(item.id) : item.type === currentCat);
-                const matchQ = !q || item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q);
-                return matchCat && matchQ;
-              }).forEach(item => {
-                const isFav = favs.includes(item.id);
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.tabIndex = 0;
-                card.innerHTML = `
-                  <div class="card-thumb">
-                    <span class="card-type">${item.type === 'audio' ? 'صوتيات' : 'مكتبة الفيديو'}</span>
-                    <button class="fav-btn" onclick="toggleFav(event, '${item.id}')">${isFav ? '&#11088;' : '&#9734;'}</button>
-                    <span>${item.icon}</span>
-                  </div>
-                  <h3>${item.title}</h3>
-                  <p>${item.desc}</p>
-                `;
-                card.onclick = () => openServerModal(item.url);
-                grid.appendChild(card);
-              });
-            }
-
-            function toggleFav(e, id) {
-              e.stopPropagation();
-              favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
-              localStorage.setItem('favs', JSON.stringify(favs));
-              renderGrid();
-            }
-
-            document.getElementById('searchInput').oninput = renderGrid;
-            document.querySelectorAll('.tab').forEach(btn => {
-              btn.onclick = () => {
-                document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentCat = btn.dataset.cat;
-                renderGrid();
-              };
-            });
-
             function openServerModal(subPath = '') {
               const base = getActiveServer().url.replace(/\/+$/, '');
-              document.getElementById('serverIframe').src = base + subPath;
+              document.getElementById('serverIframe').src = base + (subPath ? '/' + subPath.replace(/^\/+/, '') : '');
               document.getElementById('serverFrameWrap').classList.add('open');
+              if (!TV_MODE && isMediaActive() && playerShell.classList.contains('full')) {
+                setMiniMode(true);
+              }
             }
 
             function reloadServerFrame() {
               const frame = document.getElementById('serverIframe');
-              const base = getActiveServer().url.replace(/\/+$/, '');
-              frame.src = frame.src && frame.src !== 'about:blank' ? frame.src : base;
+              frame.src = frame.src && frame.src !== 'about:blank' ? frame.src : getActiveServer().url;
             }
 
             function closeServerModal() {
@@ -656,13 +720,22 @@ jobs:
             const toggleMiniBtn = document.getElementById('toggleMiniBtn');
             let activeMediaType = 'video';
 
-            if (TV_MODE && toggleMiniBtn) {
-              toggleMiniBtn.style.display = 'none';
+            if (TV_MODE && toggleMiniBtn) toggleMiniBtn.style.display = 'none';
+
+            function getActiveEl() {
+              return activeMediaType === 'audio' ? audioPlayer : videoPlayer;
             }
 
             function isMediaActive() {
-              const el = activeMediaType === 'audio' ? audioPlayer : videoPlayer;
+              const el = getActiveEl();
               return !!(el && el.src && !el.ended);
+            }
+
+            function togglePlayPause() {
+              const el = getActiveEl();
+              if (!el || !el.src) return;
+              if (el.paused) el.play().catch(() => {});
+              else el.pause();
             }
 
             function playMedia(url, title, type = 'video') {
@@ -701,10 +774,8 @@ jobs:
               }
               if (enableMini && isMediaActive()) {
                 playerShell.className = activeMediaType === 'audio' ? 'player-shell mini audio-mode' : 'player-shell mini';
-                if (toggleMiniBtn) toggleMiniBtn.textContent = 'تكبير';
               } else {
                 playerShell.className = activeMediaType === 'audio' ? 'player-shell full audio-mode' : 'player-shell full';
-                if (toggleMiniBtn) toggleMiniBtn.textContent = 'مصغرة';
               }
             }
 
@@ -721,27 +792,27 @@ jobs:
               playerShell.className = 'player-shell';
             }
 
-            // Back button keeps media running in mini-player so user can search/browse (except Android TV)
+            // Back button keeps media running in mini bar/window while navigating (except Android TV)
             document.addEventListener('backbutton', e => {
               if (playerShell.classList.contains('full')) {
                 e.preventDefault();
-                if (!TV_MODE && isMediaActive()) {
-                  setMiniMode(true);
-                } else {
-                  closePlayer();
-                }
+                if (!TV_MODE && isMediaActive()) setMiniMode(true);
+                else closePlayer();
               } else if (document.getElementById('serverFrameWrap').classList.contains('open')) {
                 e.preventDefault();
                 closeServerModal();
               } else if (document.getElementById('settingsModal').classList.contains('open')) {
                 e.preventDefault();
                 closeSettings();
+              } else if (currentDir) {
+                e.preventDefault();
+                goParentDir();
               }
             }, false);
 
             function openSettings() {
               const srv = getActiveServer();
-              document.getElementById('deviceNameInput').value = localStorage.getItem('deviceName') || '';
+              document.getElementById('deviceNameInput').value = srv.name;
               document.getElementById('serverUrlInput').value = srv.url;
               document.getElementById('pinEnabledToggle').checked = localStorage.getItem('pinEnabled') === 'true';
               document.getElementById('settingsModal').classList.add('open');
@@ -751,18 +822,12 @@ jobs:
 
             function saveSettings() {
               const devName = document.getElementById('deviceNameInput').value.trim();
-              if (devName) localStorage.setItem('deviceName', devName);
-
               const rawUrl = document.getElementById('serverUrlInput').value.trim().replace(/\/+$/, '');
-              if (rawUrl) {
-                const fullUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : 'http://' + rawUrl;
-                const srv = getActiveServer();
-                srv.url = fullUrl;
-                if (devName && srv.id === 'note3') srv.name = devName;
-              }
+              const srv = getActiveServer();
+              if (devName) srv.name = devName;
+              if (rawUrl) srv.url = /^https?:\/\//i.test(rawUrl) ? rawUrl : 'http://' + rawUrl;
 
-              const pinEnabled = document.getElementById('pinEnabledToggle').checked;
-              localStorage.setItem('pinEnabled', pinEnabled);
+              localStorage.setItem('pinEnabled', document.getElementById('pinEnabledToggle').checked);
               const newPin = document.getElementById('newPinInput').value.trim();
               if (/^\d{4}$/.test(newPin)) {
                 localStorage.setItem('appPin', newPin);
@@ -770,6 +835,7 @@ jobs:
               }
               saveServers();
               closeSettings();
+              loadServerDirectory('');
             }
 
             let enteredPin = '';
@@ -792,7 +858,7 @@ jobs:
                       lock.classList.remove('active');
                       enteredPin = '';
                     } else {
-                      document.getElementById('pinHint').textContent = 'رمز خاطئ، حاول مجدداً (الافتراضي 1234)';
+                      document.getElementById('pinHint').textContent = 'رمز خاطئ (الافتراضي 1234)';
                       enteredPin = '';
                       setTimeout(() => document.querySelectorAll('#pinDots span').forEach(s => s.classList.remove('filled')), 250);
                     }
@@ -804,7 +870,7 @@ jobs:
 
             initLockScreen();
             saveServers();
-            renderGrid();
+            loadServerDirectory('');
           </script>
         </body>
         </html>"""
