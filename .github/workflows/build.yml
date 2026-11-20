@@ -43,16 +43,16 @@ jobs:
           cp "$ICON_SRC" res/icon/android/icon.png
           cp "$ICON_SRC" www/app-icon.png
 
-          for d in platforms/android/app/src/main/res/mipmap-*; do
-            if [ -d "$d" ]; then
-              cp "$ICON_SRC" "$d/ic_launcher.png"
-              cp "$ICON_SRC" "$d/ic_launcher_round.png"
-              cp "$ICON_SRC" "$d/ic_launcher_foreground.png" 2>/dev/null || true
+          for res_dir in platforms/android/app/src/main/res platforms/android/res; do
+            if [ -d "$res_dir" ]; then
+              for d in "$res_dir"/mipmap-* "$res_dir"/drawable*; do
+                if [ -d "$d" ]; then
+                  cp "$ICON_SRC" "$d/ic_launcher.png"
+                  cp "$ICON_SRC" "$d/ic_launcher_round.png"
+                fi
+              done
             fi
           done
-
-          mkdir -p platforms/android/app/src/main/res/drawable
-          cp "$ICON_SRC" platforms/android/app/src/main/res/drawable/ic_launcher.png
         fi
 
         python3 - << 'PYEOF'
@@ -94,7 +94,7 @@ jobs:
           <preference name="Orientation" value="default" />
           {icon_block}
           <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-            <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
+            <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" android:icon="@mipmap/ic_launcher" />
           </edit-config>
         </widget>"""
 
@@ -235,7 +235,6 @@ jobs:
             }
             .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
 
-            /* True full-screen frame + persistent mini bar */
             .player-shell {
               position: fixed; z-index: 9999; background: #000;
               overflow: hidden; display: none; flex-direction: column;
@@ -643,7 +642,6 @@ jobs:
                   parsed.push({ type: 'audio', title, url: fullUrl, badge: 'صوت' });
                 });
 
-                // Also detect direct audio/video links in HTML
                 doc.querySelectorAll('a[href]').forEach(a => {
                   const href = a.getAttribute('href') || '';
                   if (href.includes('dir=')) return;
