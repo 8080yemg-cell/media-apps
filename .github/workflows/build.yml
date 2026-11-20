@@ -39,9 +39,20 @@ jobs:
         done
 
         if [ -n "$ICON_SRC" ]; then
-          mkdir -p res/icon/android
+          mkdir -p res/icon/android www
           cp "$ICON_SRC" res/icon/android/icon.png
           cp "$ICON_SRC" www/app-icon.png
+
+          for d in platforms/android/app/src/main/res/mipmap-*; do
+            if [ -d "$d" ]; then
+              cp "$ICON_SRC" "$d/ic_launcher.png"
+              cp "$ICON_SRC" "$d/ic_launcher_round.png"
+              cp "$ICON_SRC" "$d/ic_launcher_foreground.png" 2>/dev/null || true
+            fi
+          done
+
+          mkdir -p platforms/android/app/src/main/res/drawable
+          cp "$ICON_SRC" platforms/android/app/src/main/res/drawable/ic_launcher.png
         fi
 
         python3 - << 'PYEOF'
@@ -83,7 +94,7 @@ jobs:
           <preference name="Orientation" value="default" />
           {icon_block}
           <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-            <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" />
+            <application android:usesCleartextTraffic="true" android:hardwareAccelerated="true" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
           </edit-config>
         </widget>"""
 
@@ -106,7 +117,7 @@ jobs:
               --bg: #0a0a0e;
               --bg-elevated: #14141c;
               --bg-card: #1a1a24;
-              --glass: rgba(20, 20, 28, 0.85);
+              --glass: rgba(20, 20, 28, 0.88);
               --text: #f5f5f7;
               --text-muted: #9a9aa6;
               --border: rgba(255, 255, 255, 0.08);
@@ -117,7 +128,7 @@ jobs:
               --bg: #f3f4f8;
               --bg-elevated: #ffffff;
               --bg-card: #ffffff;
-              --glass: rgba(255, 255, 255, 0.9);
+              --glass: rgba(255, 255, 255, 0.92);
               --text: #12131a;
               --text-muted: #5c5f6e;
               --border: rgba(0, 0, 0, 0.08);
@@ -154,6 +165,7 @@ jobs:
               background: var(--bg-card); color: var(--text); cursor: pointer;
               display: grid; place-items: center; font-size: 1.05rem;
             }
+
             .container { max-width: 1320px; margin: 0 auto; padding: 16px 18px 150px; }
             .hero {
               border-radius: 20px; padding: 20px; margin-bottom: 18px;
@@ -171,6 +183,7 @@ jobs:
               padding: 9px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-elevated);
               color: var(--text); font-weight: 600; cursor: pointer;
             }
+
             .servers-panel {
               background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 18px;
               padding: 14px; margin-bottom: 18px;
@@ -183,12 +196,14 @@ jobs:
             }
             .srv-card.active { border-color: var(--accent); }
             .srv-meta small { color: var(--text-muted); display: block; margin-top: 2px; }
+
             .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; }
             .tab {
               padding: 8px 15px; border-radius: 99px; border: 1px solid var(--border);
               background: var(--bg-card); color: var(--text-muted); cursor: pointer; white-space: nowrap; font-weight: 600;
             }
             .tab.active, .tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
             .section-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
             .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
             .card {
@@ -220,36 +235,42 @@ jobs:
             }
             .server-frame-wrap iframe { flex: 1; width: 100%; border: none; }
 
-            /* YouTube / X / VK style live persistent player */
+            /* True full-screen frame + persistent mini bar */
             .player-shell {
-              position: fixed; z-index: 95; background: #0c0c12; border: 1px solid var(--border);
-              box-shadow: 0 18px 45px rgba(0,0,0,0.85); overflow: hidden;
-              transition: all 0.25s ease; display: none; flex-direction: column;
+              position: fixed; z-index: 9999; background: #000;
+              overflow: hidden; display: none; flex-direction: column;
             }
-            .player-shell.full { display: flex; inset: 0; border-radius: 0; }
+            .player-shell.full {
+              display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+              width: 100vw; height: 100vh; border-radius: 0; border: none;
+            }
             .player-shell.mini {
               display: flex; left: 12px; right: 12px; bottom: 12px; width: auto; height: 84px;
               border-radius: 16px; border: 1.5px solid var(--accent); flex-direction: row; align-items: center;
               background: rgba(16, 16, 24, 0.96); backdrop-filter: blur(14px);
             }
             .player-top {
+              position: absolute; top: 0; left: 0; right: 0; z-index: 10;
               display: flex; align-items: center; justify-content: space-between; gap: 8px;
-              padding: 8px 12px; background: rgba(15,15,22,0.95); color: #fff; font-size: 0.84rem;
+              padding: 8px 12px; background: rgba(10,10,16,0.78); color: #fff; font-size: 0.84rem;
             }
             .player-shell.mini .player-top {
-              flex: 1; background: transparent; padding: 6px 10px; min-width: 0;
+              position: static; flex: 1; background: transparent; padding: 6px 10px; min-width: 0;
             }
             .player-controls { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
             .player-controls button, .player-controls select {
-              background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.14); color: #fff;
+              background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.18); color: #fff;
               padding: 5px 8px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; outline: none;
             }
             .player-controls select option { background: #14141c; color: #fff; }
-            .player-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; position: relative; }
+            .player-body {
+              width: 100%; height: 100%; flex: 1; display: flex; flex-direction: column;
+              justify-content: center; align-items: center; background: #000; position: relative;
+            }
             .player-shell.mini .player-body { flex: 0 0 116px; width: 116px; height: 100%; border-radius: 12px; overflow: hidden; margin-right: 8px; }
-            .player-shell video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+            .player-shell video { width: 100%; height: 100%; max-width: 100vw; max-height: 100vh; object-fit: contain; background: #000; }
             .player-shell.mini video { object-fit: cover; }
-            .audio-stage { display: none; width: 100%; padding: 14px; text-align: center; color: #fff; }
+            .audio-stage { display: none; width: 100%; padding: 18px; text-align: center; color: #fff; }
             .player-shell.audio-mode .audio-stage { display: block; }
             .player-shell.audio-mode video { display: none; }
             .player-shell.mini.audio-mode .player-body { width: 54px; flex: 0 0 54px; background: rgba(229,9,20,0.18); }
@@ -328,9 +349,9 @@ jobs:
           <main class="container">
             <section class="hero">
               <h1>مكتبة الوسائط — Mg Cinema</h1>
-              <p>المطور: <strong>Mag Ai</strong> — استعرض المجلدات وشغّل الفيديو والصوت مع تسريع ونافذة مصغرة مستمرة أثناء تصفح باقي الملفات.</p>
+              <p>المطور: <strong>Mag Ai</strong> — استعرض المجلدات وشغّل الفيديو والصوت بملء الإطار مع تسريع ونافذة مصغرة مستمرة أثناء التصفح.</p>
               <div class="hero-btns">
-                <button class="btn-primary" onclick="loadServerDirectory('')">&#9654; تحميل ملفات ومجلدات السيرفر</button>
+                <button class="btn-primary" onclick="loadServerDirectory('')">&#9654; تحديث ملفات ومجلدات السيرفر</button>
                 <button class="btn-secondary" onclick="scanLocalServers()">&#128225; البحث عن السيرفرات المتصلة</button>
                 <button class="btn-secondary" onclick="openServerModal('')">&#127760; عرض صفحة الويب</button>
               </div>
@@ -442,6 +463,9 @@ jobs:
             let currentDir = '';
             let currentCat = 'all';
             let libraryItems = [];
+
+            const VIDEO_EXT_RE = /\.(mp4|mkv|webm|3gp|mov|avi)(\?|#|$)/i;
+            const AUDIO_EXT_RE = /\.(mp3|m4a|wav|ogg|aac|flac)(\?|#|$)/i;
 
             function isAndroidTV() {
               const ua = navigator.userAgent || '';
@@ -561,9 +585,8 @@ jobs:
 
               dirLabel.textContent = 'المسار الحالي: /' + (currentDir || '');
               backBtn.style.display = currentDir ? 'inline-block' : 'none';
-              statusEl.textContent = 'جاري جلب الملفات والمجلدات...';
+              statusEl.textContent = 'جاري تحديث الملفات والمجلدات...';
 
-              // Keep any active media in mini mode when browsing folders
               if (!TV_MODE && isMediaActive() && playerShell.classList.contains('full')) {
                 setMiniMode(true);
               }
@@ -576,6 +599,7 @@ jobs:
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
                 const parsed = [];
+                const seenUrls = new Set();
 
                 doc.querySelectorAll('a[href*="dir="]').forEach(a => {
                   const href = a.getAttribute('href') || '';
@@ -586,37 +610,75 @@ jobs:
                   const title = (a.textContent || targetDir).replace('📁', '').trim() || targetDir.split('/').pop();
                   const thumbImg = a.querySelector('img');
                   const thumbSrc = thumbImg ? resolveMediaUrl(base, thumbImg.getAttribute('src')) : '';
-                  parsed.push({ type: 'folder', title, dirPath: targetDir, thumb: thumbSrc, badge: 'مجلد' });
+                  const key = 'folder:' + targetDir;
+                  if (!seenUrls.has(key)) {
+                    seenUrls.add(key);
+                    parsed.push({ type: 'folder', title, dirPath: targetDir, thumb: thumbSrc, badge: 'مجلد' });
+                  }
                 });
 
                 doc.querySelectorAll('video').forEach(vid => {
                   const srcEl = vid.querySelector('source');
                   const rawSrc = (srcEl && srcEl.getAttribute('src')) || vid.getAttribute('src') || '';
                   if (!rawSrc) return;
+                  const fullUrl = resolveMediaUrl(base, rawSrc);
+                  if (seenUrls.has(fullUrl)) return;
+                  seenUrls.add(fullUrl);
                   const card = vid.closest('.card') || vid.parentElement;
                   const h3 = card ? card.querySelector('h3') : null;
-                  const title = (h3 ? h3.textContent : rawSrc.split('/').pop()).trim();
-                  parsed.push({ type: 'video', title, url: resolveMediaUrl(base, rawSrc), badge: 'فيديو' });
+                  const title = (h3 ? h3.textContent : decodeURIComponent(rawSrc.split('/').pop())).trim();
+                  parsed.push({ type: 'video', title, url: fullUrl, badge: 'فيديو' });
                 });
 
                 doc.querySelectorAll('audio').forEach(aud => {
                   const srcEl = aud.querySelector('source');
                   const rawSrc = (srcEl && srcEl.getAttribute('src')) || aud.getAttribute('src') || '';
                   if (!rawSrc) return;
+                  const fullUrl = resolveMediaUrl(base, rawSrc);
+                  if (seenUrls.has(fullUrl)) return;
+                  seenUrls.add(fullUrl);
                   const card = aud.closest('.card') || aud.parentElement;
                   const h3 = card ? card.querySelector('h3') : null;
-                  const title = (h3 ? h3.textContent : rawSrc.split('/').pop()).trim();
-                  parsed.push({ type: 'audio', title, url: resolveMediaUrl(base, rawSrc), badge: 'صوت' });
+                  const title = (h3 ? h3.textContent : decodeURIComponent(rawSrc.split('/').pop())).trim();
+                  parsed.push({ type: 'audio', title, url: fullUrl, badge: 'صوت' });
+                });
+
+                // Also detect direct audio/video links in HTML
+                doc.querySelectorAll('a[href]').forEach(a => {
+                  const href = a.getAttribute('href') || '';
+                  if (href.includes('dir=')) return;
+                  const fullUrl = resolveMediaUrl(base, href);
+                  if (seenUrls.has(fullUrl)) return;
+                  if (AUDIO_EXT_RE.test(href)) {
+                    seenUrls.add(fullUrl);
+                    parsed.push({ type: 'audio', title: (a.textContent || decodeURIComponent(href.split('/').pop())).trim(), url: fullUrl, badge: 'صوت' });
+                  } else if (VIDEO_EXT_RE.test(href)) {
+                    seenUrls.add(fullUrl);
+                    parsed.push({ type: 'video', title: (a.textContent || decodeURIComponent(href.split('/').pop())).trim(), url: fullUrl, badge: 'فيديو' });
+                  }
                 });
 
                 libraryItems = parsed;
-                statusEl.textContent = `تم تحميل ${libraryItems.length} عنصر`;
+                updateCategoryCounts();
                 renderMediaGrid();
               } catch (err) {
                 libraryItems = [];
+                updateCategoryCounts();
                 statusEl.textContent = 'تعذر قراءة الملفات تلقائياً (تأكد من تشغيل السيرفر والاتصال بنفس الشبكة)';
                 renderMediaGrid();
               }
+            }
+
+            function updateCategoryCounts() {
+              const allCount = libraryItems.length;
+              const folderCount = libraryItems.filter(i => i.type === 'folder').length;
+              const videoCount = libraryItems.filter(i => i.type === 'video').length;
+              const audioCount = libraryItems.filter(i => i.type === 'audio').length;
+
+              document.querySelector('.tab[data-cat="all"]').textContent = `الكل (${allCount})`;
+              document.querySelector('.tab[data-cat="folder"]').textContent = `المجلدات (${folderCount})`;
+              document.querySelector('.tab[data-cat="video"]').textContent = `فيديو (${videoCount})`;
+              document.querySelector('.tab[data-cat="audio"]').textContent = `موسيقى وصوتيات (${audioCount})`;
             }
 
             function goParentDir() {
@@ -629,6 +691,7 @@ jobs:
             function renderMediaGrid() {
               const q = document.getElementById('searchInput').value.trim().toLowerCase();
               const grid = document.getElementById('mediaGrid');
+              const statusEl = document.getElementById('libraryStatus');
               grid.innerHTML = '';
 
               const filtered = libraryItems.filter(item => {
@@ -637,11 +700,13 @@ jobs:
                 return matchCat && matchQ;
               });
 
+              statusEl.textContent = `المعروض: ${filtered.length} من ${libraryItems.length}`;
+
               if (filtered.length === 0) {
                 grid.innerHTML = `
                   <div class="card" style="grid-column:1/-1;text-align:center;cursor:default;">
-                    <h3>لا توجد عناصر مطابقة في هذا المسار</h3>
-                    <p>تحقق من تشغيل السيرفر على ${getActiveServer().url} أو اضغط "عرض صفحة الويب"</p>
+                    <h3>لا توجد عناصر مطابقة في هذا القسم أو المسار</h3>
+                    <p>جرّب تبويب "الكل" أو اضغط "عرض صفحة الويب"</p>
                   </div>`;
                 return;
               }
@@ -792,7 +857,6 @@ jobs:
               playerShell.className = 'player-shell';
             }
 
-            // Back button keeps media running in mini bar/window while navigating (except Android TV)
             document.addEventListener('backbutton', e => {
               if (playerShell.classList.contains('full')) {
                 e.preventDefault();
@@ -807,6 +871,12 @@ jobs:
               } else if (currentDir) {
                 e.preventDefault();
                 goParentDir();
+              }
+            }, false);
+
+            document.addEventListener('resume', () => {
+              if (activeMediaType === 'audio' && audioPlayer.src && !audioPlayer.ended && audioPlayer.paused) {
+                audioPlayer.play().catch(() => {});
               }
             }, false);
 
