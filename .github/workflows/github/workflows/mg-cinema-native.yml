@@ -1,0 +1,881 @@
+name: Build Native Mg Cinema APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Ensure Android SDK Packages
+        run: |
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/cmdline-tools/tools/bin
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Create Native Mg Cinema Project (API 19 to 34)
+        run: |
+          mkdir -p MgCinemaProject/app/src/main/java/com/magai/mgcinema
+          mkdir -p MgCinemaProject/app/src/main/res/layout
+          mkdir -p MgCinemaProject/app/src/main/res/values
+          mkdir -p MgCinemaProject/app/src/main/res/drawable
+          mkdir -p MgCinemaProject/app/src/main/res/mipmap-anydpi-v26
+
+          cat << 'EOF' > MgCinemaProject/gradle.properties
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.nonTransitiveRClass=false
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/settings.gradle
+          rootProject.name = "MgCinema"
+          include ':app'
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/build.gradle
+          buildscript {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:8.5.2'
+              }
+          }
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/build.gradle
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.magai.mgcinema'
+              compileSdk 34
+
+              defaultConfig {
+                  applicationId "com.magai.mgcinema"
+                  minSdk 19
+                  targetSdk 34
+                  versionCode 3
+                  versionName "0.2"
+                  multiDexEnabled true
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+                  debug {
+                      minifyEnabled false
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.multidex:multidex:2.0.1'
+          }
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/values/strings.xml
+          <resources>
+              <string name="app_name">Mg Cinema</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/values/colors.xml
+          <resources>
+              <color name="ic_launcher_bg">#090712</color>
+              <color name="cinema_bg">#08070F</color>
+              <color name="cinema_card">#151224</color>
+              <color name="cinema_accent">#E50914</color>
+              <color name="cinema_purple">#7C3AED</color>
+          </resources>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/values/styles.xml
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+                  <item name="colorPrimary">#E50914</item>
+                  <item name="colorPrimaryDark">#08070F</item>
+                  <item name="colorAccent">#7C3AED</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/drawable/cinema_ambient_bg.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+              <item>
+                  <shape android:shape="rectangle">
+                      <gradient
+                          android:angle="315"
+                          android:startColor="#07060D"
+                          android:centerColor="#120C24"
+                          android:endColor="#1D0916" />
+                  </shape>
+              </item>
+              <item android:top="160dp" android:left="40dp" android:right="40dp">
+                  <shape android:shape="rectangle">
+                      <corners android:radius="48dp" />
+                      <gradient
+                          android:angle="270"
+                          android:startColor="#337C3AED"
+                          android:centerColor="#26E50914"
+                          android:endColor="#0007060D" />
+                  </shape>
+              </item>
+          </layer-list>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/drawable/tv_focus_item.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <selector xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:state_focused="true">
+                  <shape android:shape="rectangle">
+                      <corners android:radius="14dp" />
+                      <solid android:color="#23193B" />
+                      <stroke android:width="2dp" android:color="#FF2A55" />
+                  </shape>
+              </item>
+              <item android:state_pressed="true">
+                  <shape android:shape="rectangle">
+                      <corners android:radius="14dp" />
+                      <solid android:color="#2B1324" />
+                      <stroke android:width="2dp" android:color="#A855F7" />
+                  </shape>
+              </item>
+              <item>
+                  <shape android:shape="rectangle">
+                      <corners android:radius="14dp" />
+                      <solid android:color="#151224" />
+                      <stroke android:width="1dp" android:color="#282342" />
+                  </shape>
+              </item>
+          </selector>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/drawable/tv_focus_btn.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <selector xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:state_focused="true">
+                  <shape android:shape="rectangle">
+                      <corners android:radius="12dp" />
+                      <solid android:color="#E50914" />
+                      <stroke android:width="2dp" android:color="#FFFFFF" />
+                  </shape>
+              </item>
+              <item>
+                  <shape android:shape="rectangle">
+                      <corners android:radius="12dp" />
+                      <solid android:color="#1E1833" />
+                      <stroke android:width="1dp" android:color="#3A2F5E" />
+                  </shape>
+              </item>
+          </selector>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_bg" />
+              <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+          </adaptive-icon>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_bg" />
+              <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+          </adaptive-icon>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+              <uses-feature android:name="android.software.leanback" android:required="false" />
+              <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+              <application
+                  android:allowBackup="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher_round"
+                  android:banner="@mipmap/ic_launcher"
+                  android:label="@string/app_name"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="true">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:configChanges="orientation|screenSize|keyboardHidden"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                          <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/res/layout/activity_main.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/rootFrame"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/cinema_ambient_bg">
+
+              <View
+                  android:id="@+id/glowLayer"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:background="#18E50914" />
+
+              <ScrollView
+                  android:id="@+id/mainScroll"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:padding="16dp"
+                  android:scrollbars="vertical">
+
+                  <LinearLayout
+                      android:id="@+id/mainContainer"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="vertical">
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:background="@drawable/tv_focus_item"
+                          android:gravity="center_vertical"
+                          android:orientation="horizontal"
+                          android:padding="14dp">
+
+                          <ImageView
+                              android:id="@+id/ivBrandLogo"
+                              android:layout_width="54dp"
+                              android:layout_height="54dp"
+                              android:scaleType="centerCrop"
+                              android:src="@mipmap/ic_launcher" />
+
+                          <LinearLayout
+                              android:layout_width="0dp"
+                              android:layout_height="wrap_content"
+                              android:layout_marginStart="12dp"
+                              android:layout_weight="1"
+                              android:orientation="vertical">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="Mg Cinema v0.2"
+                                  android:textColor="#FFFFFF"
+                                  android:textSize="20sp"
+                                  android:textStyle="bold" />
+
+                              <TextView
+                                  android:id="@+id/tvVersionInfo"
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginTop="2dp"
+                                  android:text="Mag Ai • متوافق مع MG Server v0.2 • TV / Projector D-Pad"
+                                  android:textColor="#C4B5FD"
+                                  android:textSize="11sp" />
+                          </LinearLayout>
+
+                          <TextView
+                              android:id="@+id/tvServerBadge"
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:background="#2A111B"
+                              android:paddingHorizontal="10dp"
+                              android:paddingVertical="5dp"
+                              android:text="غير متصل"
+                              android:textColor="#FF6B8B"
+                              android:textSize="12sp" />
+                      </LinearLayout>
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:layout_marginTop="12dp"
+                          android:orientation="horizontal">
+
+                          <EditText
+                              android:id="@+id/etServerIp"
+                              android:layout_width="0dp"
+                              android:layout_height="46dp"
+                              android:layout_marginEnd="6dp"
+                              android:layout_weight="2"
+                              android:background="@drawable/tv_focus_btn"
+                              android:focusable="true"
+                              android:focusableInTouchMode="true"
+                              android:hint="IP السيرفر (مثلاً 192.168.1.200)"
+                              android:inputType="text"
+                              android:nextFocusDown="@+id/etServerPort"
+                              android:paddingHorizontal="12dp"
+                              android:textColor="#FFFFFF"
+                              android:textColorHint="#8B82A8"
+                              android:textSize="13sp" />
+
+                          <EditText
+                              android:id="@+id/etServerPort"
+                              android:layout_width="0dp"
+                              android:layout_height="46dp"
+                              android:layout_marginStart="6dp"
+                              android:layout_weight="1"
+                              android:background="@drawable/tv_focus_btn"
+                              android:focusable="true"
+                              android:focusableInTouchMode="true"
+                              android:hint="8080"
+                              android:inputType="number"
+                              android:nextFocusDown="@+id/btnConnect"
+                              android:paddingHorizontal="12dp"
+                              android:textColor="#FFFFFF"
+                              android:textColorHint="#8B82A8"
+                              android:textSize="13sp" />
+                      </LinearLayout>
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:layout_marginTop="10dp"
+                          android:orientation="horizontal">
+
+                          <Button
+                              android:id="@+id/btnConnect"
+                              android:layout_width="0dp"
+                              android:layout_height="46dp"
+                              android:layout_marginEnd="6dp"
+                              android:layout_weight="1"
+                              android:background="@drawable/tv_focus_btn"
+                              android:focusable="true"
+                              android:nextFocusDown="@+id/btnOpenWeb"
+                              android:text="تحديث واتصال"
+                              android:textColor="#FFFFFF"
+                              android:textStyle="bold" />
+
+                          <Button
+                              android:id="@+id/btnOpenWeb"
+                              android:layout_width="0dp"
+                              android:layout_height="46dp"
+                              android:layout_marginStart="6dp"
+                              android:layout_weight="1"
+                              android:background="@drawable/tv_focus_btn"
+                              android:focusable="true"
+                              android:nextFocusDown="@+id/btnBackDir"
+                              android:text="صفحة الويب"
+                              android:textColor="#FFFFFF"
+                              android:textStyle="bold" />
+                      </LinearLayout>
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:layout_marginTop="10dp"
+                          android:gravity="center_vertical"
+                          android:orientation="horizontal">
+
+                          <Button
+                              android:id="@+id/btnBackDir"
+                              android:layout_width="wrap_content"
+                              android:layout_height="40dp"
+                              android:background="@drawable/tv_focus_btn"
+                              android:focusable="true"
+                              android:paddingHorizontal="14dp"
+                              android:text="⬅️ مجلد أعلى"
+                              android:textColor="#FFFFFF"
+                              android:textSize="12sp" />
+
+                          <TextView
+                              android:id="@+id/tvCurrentPath"
+                              android:layout_width="0dp"
+                              android:layout_height="wrap_content"
+                              android:layout_marginStart="10dp"
+                              android:layout_weight="1"
+                              android:text="المسار: /"
+                              android:textColor="#D8B4FE"
+                              android:textSize="13sp" />
+                      </LinearLayout>
+
+                      <LinearLayout
+                          android:id="@+id/dynamicListContainer"
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:layout_marginTop="14dp"
+                          android:orientation="vertical" />
+
+                  </LinearLayout>
+              </ScrollView>
+          </FrameLayout>
+          EOF
+
+          cat << 'EOF' > MgCinemaProject/app/src/main/java/com/magai/mgcinema/MainActivity.java
+          package com.magai.mgcinema;
+
+          import android.animation.ArgbEvaluator;
+          import android.animation.ValueAnimator;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.graphics.Color;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.view.Gravity;
+          import android.view.KeyEvent;
+          import android.view.View;
+          import android.view.ViewGroup;
+          import android.view.ViewTreeObserver;
+          import android.widget.Button;
+          import android.widget.EditText;
+          import android.widget.ImageView;
+          import android.widget.LinearLayout;
+          import android.widget.ScrollView;
+          import android.widget.TextView;
+          import androidx.appcompat.app.AppCompatActivity;
+          import java.io.BufferedReader;
+          import java.io.InputStreamReader;
+          import java.net.HttpURLConnection;
+          import java.net.URL;
+          import java.net.URLEncoder;
+          import java.util.ArrayList;
+          import java.util.List;
+          import java.util.regex.Matcher;
+          import java.util.regex.Pattern;
+
+          public class MainActivity extends AppCompatActivity {
+
+              private static final String APP_VERSION = "0.2";
+              private static final String SERVER_COMPAT = "MG Server v0.2";
+
+              private EditText etServerIp, etServerPort;
+              private TextView tvServerBadge, tvCurrentPath, tvVersionInfo;
+              private LinearLayout dynamicListContainer;
+              private ScrollView mainScroll;
+              private View glowLayer;
+              private SharedPreferences prefs;
+
+              private String currentSubPath = "";
+              private final List<View> focusableCards = new ArrayList<>();
+
+              private static class MediaEntry {
+                  final String name;
+                  final String urlOrPath;
+                  final String type;
+
+                  MediaEntry(String name, String urlOrPath, String type) {
+                      this.name = name;
+                      this.urlOrPath = urlOrPath;
+                      this.type = type;
+                  }
+              }
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+
+                  prefs = getSharedPreferences("mg_cinema_prefs", MODE_PRIVATE);
+
+                  etServerIp = findViewById(R.id.etServerIp);
+                  etServerPort = findViewById(R.id.etServerPort);
+                  tvServerBadge = findViewById(R.id.tvServerBadge);
+                  tvCurrentPath = findViewById(R.id.tvCurrentPath);
+                  tvVersionInfo = findViewById(R.id.tvVersionInfo);
+                  dynamicListContainer = findViewById(R.id.dynamicListContainer);
+                  mainScroll = findViewById(R.id.mainScroll);
+                  glowLayer = findViewById(R.id.glowLayer);
+                  ImageView ivBrandLogo = findViewById(R.id.ivBrandLogo);
+
+                  ivBrandLogo.setImageResource(R.mipmap.ic_launcher);
+                  tvVersionInfo.setText("v" + APP_VERSION + " • Mag Ai • متوافق مع " + SERVER_COMPAT);
+
+                  etServerIp.setText(prefs.getString("ip", "192.168.1.200"));
+                  etServerPort.setText(prefs.getString("port", "8080"));
+
+                  Button btnConnect = findViewById(R.id.btnConnect);
+                  Button btnOpenWeb = findViewById(R.id.btnOpenWeb);
+                  Button btnBackDir = findViewById(R.id.btnBackDir);
+
+                  setupScrollAmbientLighting();
+
+                  btnConnect.setOnClickListener(v -> {
+                      saveServerConfig();
+                      currentSubPath = "";
+                      fetchDirectory(currentSubPath);
+                  });
+
+                  btnOpenWeb.setOnClickListener(v -> {
+                      saveServerConfig();
+                      String url = buildBaseUrl() + (currentSubPath.isEmpty() ? "/" : ("/" + encodePathSegments(currentSubPath) + "/"));
+                      try {
+                          Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                          startActivity(i);
+                      } catch (Exception ignored) {}
+                  });
+
+                  btnBackDir.setOnClickListener(v -> {
+                      if (!currentSubPath.isEmpty()) {
+                          int slash = currentSubPath.lastIndexOf('/');
+                          currentSubPath = (slash > 0) ? currentSubPath.substring(0, slash) : "";
+                          fetchDirectory(currentSubPath);
+                      }
+                  });
+
+                  btnConnect.requestFocus();
+                  fetchDirectory(currentSubPath);
+              }
+
+              private void setupScrollAmbientLighting() {
+                  mainScroll.getViewTreeObserver().addOnScrollChangedListener(() -> {
+                      int maxScroll = Math.max(1, dynamicListContainer.getHeight() - mainScroll.getHeight());
+                      float ratio = Math.min(1f, Math.max(0f, (float) mainScroll.getScrollY() / (float) maxScroll));
+                      int colorFrom = Color.argb(38, 229, 9, 20);
+                      int colorTo = Color.argb(52, 124, 58, 237);
+                      int blended = (Integer) new ArgbEvaluator().evaluate(ratio, colorFrom, colorTo);
+                      glowLayer.setBackgroundColor(blended);
+                  });
+              }
+
+              private void saveServerConfig() {
+                  prefs.edit()
+                          .putString("ip", etServerIp.getText().toString().trim())
+                          .putString("port", etServerPort.getText().toString().trim())
+                          .apply();
+              }
+
+              private String buildBaseUrl() {
+                  String ip = etServerIp.getText().toString().trim();
+                  String port = etServerPort.getText().toString().trim();
+                  if (ip.isEmpty()) ip = "192.168.1.200";
+                  if (port.isEmpty()) port = "8080";
+                  return "http://" + ip + ":" + port;
+              }
+
+              private String encodePathSegments(String rel) {
+                  String[] parts = rel.split("/");
+                  StringBuilder sb = new StringBuilder();
+                  for (String p : parts) {
+                      if (p.isEmpty()) continue;
+                      if (sb.length() > 0) sb.append("/");
+                      try {
+                          sb.append(URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
+                      } catch (Exception e) {
+                          sb.append(p);
+                      }
+                  }
+                  return sb.toString();
+              }
+
+              private void fetchDirectory(final String subPath) {
+                  tvCurrentPath.setText("المسار: /" + (subPath.isEmpty() ? "MG Server" : subPath));
+                  tvServerBadge.setText("جاري الفحص...");
+                  tvServerBadge.setTextColor(0xFFFACC15);
+
+                  new Thread(() -> {
+                      String base = buildBaseUrl();
+                      String apiUrl = base + "/api/media";
+                      if (!subPath.isEmpty()) {
+                          try {
+                              apiUrl += "?path=" + URLEncoder.encode(subPath, "UTF-8");
+                          } catch (Exception ignored) {}
+                      }
+
+                      String json = httpGetText(apiUrl);
+                      if (json != null && json.contains("\"folders\"")) {
+                          List<MediaEntry> folders = parseArrayEntries(json, "folders", "folder");
+                          List<MediaEntry> items = parseArrayEntries(json, "items", null);
+                          runOnUiThread(() -> {
+                              tvServerBadge.setText("متصل • " + base.replace("http://", ""));
+                              tvServerBadge.setTextColor(0xFF4ADE80);
+                              renderEntries(folders, items);
+                          });
+                      } else {
+                          runOnUiThread(() -> {
+                              tvServerBadge.setText("غير متصل • تحقق من MG Server");
+                              tvServerBadge.setTextColor(0xFFFF6B8B);
+                              renderEmptyMessage("تعذر الوصول إلى " + apiUrl + "\nتأكد من تشغيل تطبيق MG Server v0.2 وأن الجهازين على نفس الشبكة.");
+                          });
+                      }
+                  }).start();
+              }
+
+              private String httpGetText(String urlStr) {
+                  HttpURLConnection conn = null;
+                  try {
+                      URL url = new URL(urlStr);
+                      conn = (HttpURLConnection) url.openConnection();
+                      conn.setConnectTimeout(4000);
+                      conn.setReadTimeout(6000);
+                      conn.setRequestMethod("GET");
+                      if (conn.getResponseCode() == 200) {
+                          BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+                          StringBuilder sb = new StringBuilder();
+                          String line;
+                          while ((line = br.readLine()) != null) {
+                              sb.append(line);
+                          }
+                          br.close();
+                          return sb.toString();
+                      }
+                  } catch (Exception ignored) {
+                  } finally {
+                      if (conn != null) conn.disconnect();
+                  }
+                  return null;
+              }
+
+              private List<MediaEntry> parseArrayEntries(String json, String arrayKey, String forcedType) {
+                  List<MediaEntry> out = new ArrayList<>();
+                  Pattern arrPattern = Pattern.compile("\"" + arrayKey + "\"\\s*:\\s*\\[(.*?)\\]", Pattern.DOTALL);
+                  Matcher arrMatcher = arrPattern.matcher(json);
+                  if (!arrMatcher.find()) return out;
+
+                  String body = arrMatcher.group(1);
+                  Pattern objPattern = Pattern.compile("\\{(.*?)\\}", Pattern.DOTALL);
+                  Matcher objMatcher = objPattern.matcher(body);
+                  while (objMatcher.find()) {
+                      String obj = objMatcher.group(1);
+                      String name = extractJsonField(obj, "name");
+                      String path = extractJsonField(obj, "path");
+                      String url = extractJsonField(obj, "url");
+                      String type = forcedType != null ? forcedType : extractJsonField(obj, "type");
+                      String target = !url.isEmpty() ? url : path;
+                      if (!name.isEmpty()) {
+                          out.add(new MediaEntry(unescapeJson(name), target, type));
+                      }
+                  }
+                  return out;
+              }
+
+              private String extractJsonField(String obj, String key) {
+                  Pattern p = Pattern.compile("\"" + key + "\"\\s*:\\s*\"(.*?)\"");
+                  Matcher m = p.matcher(obj);
+                  return m.find() ? m.group(1) : "";
+              }
+
+              private String unescapeJson(String s) {
+                  return s.replace("\\\\", "\\").replace("\\\"", "\"").replace("\\n", "\n");
+              }
+
+              private void renderEmptyMessage(String msg) {
+                  dynamicListContainer.removeAllViews();
+                  focusableCards.clear();
+                  TextView tv = new TextView(this);
+                  tv.setText(msg);
+                  tv.setTextColor(0xFFE5E7EB);
+                  tv.setTextSize(14f);
+                  tv.setPadding(16, 20, 16, 20);
+                  tv.setBackgroundResource(R.drawable.tv_focus_item);
+                  dynamicListContainer.addView(tv);
+              }
+
+              private void renderEntries(List<MediaEntry> folders, List<MediaEntry> items) {
+                  dynamicListContainer.removeAllViews();
+                  focusableCards.clear();
+
+                  if (!folders.isEmpty()) {
+                      dynamicListContainer.addView(createSectionHeader("📁 المجلدات (" + folders.size() + ")"));
+                      for (final MediaEntry f : folders) {
+                          TextView card = createCardView("📁  " + f.name, "فتح المجلد بالريموت أو اللمس");
+                          card.setOnClickListener(v -> {
+                              currentSubPath = currentSubPath.isEmpty() ? f.name : (currentSubPath + "/" + f.name);
+                              fetchDirectory(currentSubPath);
+                          });
+                          addCardToContainer(card);
+                      }
+                  }
+
+                  List<MediaEntry> videos = new ArrayList<>();
+                  List<MediaEntry> audios = new ArrayList<>();
+                  List<MediaEntry> images = new ArrayList<>();
+                  List<MediaEntry> docsAndApps = new ArrayList<>();
+
+                  for (MediaEntry m : items) {
+                      if ("video".equals(m.type)) videos.add(m);
+                      else if ("audio".equals(m.type)) audios.add(m);
+                      else if ("image".equals(m.type)) images.add(m);
+                      else docsAndApps.add(m);
+                  }
+
+                  addMediaGroup("🎬 الفيديوهات", "🎬", videos);
+                  addMediaGroup("🎵 الصوتيات", "🎵", audios);
+                  addMediaGroup("🖼️ الصور", "🖼️", images);
+                  addMediaGroup("📦 ملفات APK و PDF", "📦", docsAndApps);
+
+                  if (folders.isEmpty() && items.isEmpty()) {
+                      renderEmptyMessage("المجلد فارغ حالياً.\nضع ملفات أو مجلدات داخل مجلد MG Server على جهاز السيرفر ثم اضغط تحديث واتصال.");
+                  }
+              }
+
+              private void addMediaGroup(String title, String icon, List<MediaEntry> list) {
+                  if (list.isEmpty()) return;
+                  dynamicListContainer.addView(createSectionHeader(title + " (" + list.size() + ")"));
+                  for (final MediaEntry item : list) {
+                      String fullUrl = buildBaseUrl() + (item.urlOrPath.startsWith("/") ? item.urlOrPath : ("/" + item.urlOrPath));
+                      TextView card = createCardView(icon + "  " + item.name, "تشغيل / فتح عبر السيرفر");
+                      card.setOnClickListener(v -> {
+                          try {
+                              Intent intent = new Intent(Intent.ACTION_VIEW);
+                              intent.setDataAndType(Uri.parse(fullUrl), guessIntentMime(item.name, item.type));
+                              startActivity(intent);
+                          } catch (Exception e) {
+                              try {
+                                  startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(fullUrl)));
+                              } catch (Exception ignored) {}
+                          }
+                      });
+                      addCardToContainer(card);
+                  }
+              }
+
+              private String guessIntentMime(String name, String type) {
+                  String l = name.toLowerCase();
+                  if ("video".equals(type) || l.endsWith(".mp4") || l.endsWith(".mkv") || l.endsWith(".webm")) return "video/*";
+                  if ("audio".equals(type) || l.endsWith(".mp3") || l.endsWith(".m4a") || l.endsWith(".wav")) return "audio/*";
+                  if ("image".equals(type) || l.endsWith(".jpg") || l.endsWith(".jpeg") || l.endsWith(".png")) return "image/*";
+                  if (l.endsWith(".pdf")) return "application/pdf";
+                  if (l.endsWith(".apk")) return "application/vnd.android.package-archive";
+                  return "*/*";
+              }
+
+              private TextView createSectionHeader(String text) {
+                  TextView tv = new TextView(this);
+                  tv.setText(text);
+                  tv.setTextColor(0xFFF3E8FF);
+                  tv.setTextSize(16f);
+                  tv.setPadding(4, 16, 4, 8);
+                  return tv;
+              }
+
+              private TextView createCardView(String title, String subtitle) {
+                  TextView tv = new TextView(this);
+                  tv.setText(title + "\n" + subtitle);
+                  tv.setTextColor(0xFFFFFFFF);
+                  tv.setTextSize(14f);
+                  tv.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+                  tv.setPadding(16, 14, 16, 14);
+                  tv.setBackgroundResource(R.drawable.tv_focus_item);
+                  tv.setFocusable(true);
+                  tv.setFocusableInTouchMode(true);
+
+                  LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                          ViewGroup.LayoutParams.MATCH_PARENT,
+                          ViewGroup.LayoutParams.WRAP_CONTENT
+                  );
+                  lp.setMargins(0, 0, 0, 10);
+                  tv.setLayoutParams(lp);
+
+                  tv.setOnFocusChangeListener((v, hasFocus) -> {
+                      v.animate().scaleX(hasFocus ? 1.02f : 1.0f)
+                                 .scaleY(hasFocus ? 1.02f : 1.0f)
+                                 .setDuration(140)
+                                 .start();
+                      if (hasFocus) {
+                          mainScroll.smoothScrollTo(0, Math.max(0, v.getTop() - 120));
+                          ValueAnimator anim = ValueAnimator.ofObject(
+                                  new ArgbEvaluator(),
+                                  Color.argb(30, 229, 9, 20),
+                                  Color.argb(62, 124, 58, 237)
+                          );
+                          anim.setDuration(260);
+                          anim.addUpdateListener(a -> glowLayer.setBackgroundColor((Integer) a.getAnimatedValue()));
+                          anim.start();
+                      }
+                  });
+                  return tv;
+              }
+
+              private void addCardToContainer(View card) {
+                  dynamicListContainer.addView(card);
+                  focusableCards.add(card);
+              }
+
+              @Override
+              public boolean dispatchKeyEvent(KeyEvent event) {
+                  if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                      int code = event.getKeyCode();
+                      if (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ESCAPE) {
+                          if (!currentSubPath.isEmpty()) {
+                              int slash = currentSubPath.lastIndexOf('/');
+                              currentSubPath = (slash > 0) ? currentSubPath.substring(0, slash) : "";
+                              fetchDirectory(currentSubPath);
+                              return true;
+                          }
+                      }
+                  }
+                  return super.dispatchKeyEvent(event);
+              }
+          }
+          EOF
+
+      - name: Apply Mg Cinema App Icon
+        run: |
+          if [ -f "0012.png" ]; then
+            for density in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+              mkdir -p "MgCinemaProject/app/src/main/res/$density"
+              cp "0012.png" "MgCinemaProject/app/src/main/res/$density/ic_launcher.png"
+              cp "0012.png" "MgCinemaProject/app/src/main/res/$density/ic_launcher_round.png"
+              cp "0012.png" "MgCinemaProject/app/src/main/res/$density/ic_launcher_foreground.png"
+            done
+          fi
+
+      - name: Build Debug APK
+        run: |
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$PATH:$ANDROID_HOME/platform-tools
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.7-bin.zip -o /tmp/gradle-8.7-bin.zip
+          unzip -q /tmp/gradle-8.7-bin.zip -d /tmp/gradle
+          cd MgCinemaProject
+          /tmp/gradle/gradle-8.7/bin/gradle assembleDebug --no-daemon 2>&1 | tee build.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "=== ERROR SUMMARY ==="
+            grep -E "FAILURE:|Execution failed for task|Caused by:|error:" -A 4 build.log | tail -n 60 || true
+            exit $EXIT_CODE
+          fi
+
+      - name: Upload Mg Cinema APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mg-cinema-native-apk
+          path: MgCinemaProject/app/build/outputs/apk/debug/app-debug.apk
+```[cite: 19]
+
+<FollowUp label="هل تريد إضافة مشغل فيديو وصوت مدمج داخل Mg Cinema؟" query="نعم، أضف مشغل فيديو وصوت داخلي في Mg Cinema يدعم التقديم والرجوع بالريموت دون الاعتماد على مشغل خارجي."/>
