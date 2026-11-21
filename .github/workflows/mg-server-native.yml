@@ -1,0 +1,650 @@
+name: Build Native Mg Server APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create Native Android Project (API 19 to 35)
+        run: |
+          mkdir -p MgServerProject/app/src/main/java/com/magai/mgserver
+          mkdir -p MgServerProject/app/src/main/res/layout
+          mkdir -p MgServerProject/app/src/main/res/values
+
+          cat << 'EOF' > MgServerProject/settings.gradle
+          rootProject.name = "MgServer"
+          include ':app'
+          EOF
+
+          cat << 'EOF' > MgServerProject/build.gradle
+          buildscript {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:8.3.2'
+              }
+          }
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          EOF
+
+          cat << 'EOF' > MgServerProject/app/build.gradle
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.magai.mgserver'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId "com.magai.mgserver"
+                  minSdk 19
+                  targetSdk 35
+                  versionCode 1
+                  versionName "1.0"
+                  multiDexEnabled true
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+                  debug {
+                      minifyEnabled false
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.multidex:multidex:2.0.1'
+          }
+          EOF
+
+          cat << 'EOF' > MgServerProject/app/src/main/res/values/strings.xml
+          <resources>
+              <string name="app_name">Mg Server</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > MgServerProject/app/src/main/res/values/styles.xml
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+                  <item name="colorPrimary">#E50914</item>
+                  <item name="colorPrimaryDark">#0B0C10</item>
+                  <item name="colorAccent">#E50914</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > MgServerProject/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+              <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+              <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+              <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+              <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+              <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+              <application
+                  android:allowBackup="true"
+                  android:label="@string/app_name"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="true">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > MgServerProject/app/src/main/res/layout/activity_main.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="#0B0C10"
+              android:padding="16dp">
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
+
+                  <TextView
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:text="Mg Server — Mag Ai"
+                      android:textColor="#FFFFFF"
+                      android:textSize="22sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:id="@+id/tvStatus"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="6dp"
+                      android:text="الحالة: متوقف"
+                      android:textColor="#FF6B72"
+                      android:textSize="14sp" />
+
+                  <TextView
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="14dp"
+                      android:text="عنوان IP المرجعي / الشبكة"
+                      android:textColor="#C5CADB"
+                      android:textSize="13sp" />
+
+                  <EditText
+                      android:id="@+id/etIp"
+                      android:layout_width="match_parent"
+                      android:layout_height="46dp"
+                      android:layout_marginTop="4dp"
+                      android:background="#161922"
+                      android:hint="192.168.1.200"
+                      android:inputType="text"
+                      android:padding="10dp"
+                      android:textColor="#FFFFFF"
+                      android:textColorHint="#6E748A" />
+
+                  <TextView
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:text="المنفذ (Port)"
+                      android:textColor="#C5CADB"
+                      android:textSize="13sp" />
+
+                  <EditText
+                      android:id="@+id/etPort"
+                      android:layout_width="match_parent"
+                      android:layout_height="46dp"
+                      android:layout_marginTop="4dp"
+                      android:background="#161922"
+                      android:hint="8080"
+                      android:inputType="number"
+                      android:padding="10dp"
+                      android:textColor="#FFFFFF"
+                      android:textColorHint="#6E748A" />
+
+                  <TextView
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:text="كلمة المرور (اتركها فارغة للدخول المباشر)"
+                      android:textColor="#C5CADB"
+                      android:textSize="13sp" />
+
+                  <EditText
+                      android:id="@+id/etPassword"
+                      android:layout_width="match_parent"
+                      android:layout_height="46dp"
+                      android:layout_marginTop="4dp"
+                      android:background="#161922"
+                      android:hint="اختياري"
+                      android:inputType="textPassword"
+                      android:padding="10dp"
+                      android:textColor="#FFFFFF"
+                      android:textColorHint="#6E748A" />
+
+                  <TextView
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:text="مسار مجلد الوسائط والملفات (مثل مجلد www)"
+                      android:textColor="#C5CADB"
+                      android:textSize="13sp" />
+
+                  <EditText
+                      android:id="@+id/etFolder"
+                      android:layout_width="match_parent"
+                      android:layout_height="46dp"
+                      android:layout_marginTop="4dp"
+                      android:background="#161922"
+                      android:inputType="text"
+                      android:padding="10dp"
+                      android:textColor="#FFFFFF" />
+
+                  <Button
+                      android:id="@+id/btnSaveUpdate"
+                      android:layout_width="match_parent"
+                      android:layout_height="48dp"
+                      android:layout_marginTop="14dp"
+                      android:backgroundTint="#E50914"
+                      android:text="حفظ وتحديث index.html"
+                      android:textColor="#FFFFFF"
+                      android:textStyle="bold" />
+
+                  <LinearLayout
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:orientation="horizontal">
+
+                      <Button
+                          android:id="@+id/btnStart"
+                          android:layout_width="0dp"
+                          android:layout_height="46dp"
+                          android:layout_marginEnd="6dp"
+                          android:layout_weight="1"
+                          android:backgroundTint="#1F9D55"
+                          android:text="تشغيل السيرفر"
+                          android:textColor="#FFFFFF"
+                          android:textStyle="bold" />
+
+                      <Button
+                          android:id="@+id/btnStop"
+                          android:layout_width="0dp"
+                          android:layout_height="46dp"
+                          android:layout_marginStart="6dp"
+                          android:layout_weight="1"
+                          android:backgroundTint="#2A2F40"
+                          android:text="إيقاف السيرفر"
+                          android:textColor="#FFFFFF"
+                          android:textStyle="bold" />
+                  </LinearLayout>
+
+                  <TextView
+                      android:id="@+id/tvSummary"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="14dp"
+                      android:background="#141720"
+                      android:padding="12dp"
+                      android:textColor="#9AA3BC"
+                      android:textSize="12sp" />
+              </LinearLayout>
+          </ScrollView>
+          EOF
+
+          cat << 'EOF' > MgServerProject/app/src/main/java/com/magai/mgserver/MainActivity.java
+          package com.magai.mgserver;
+
+          import android.Manifest;
+          import android.content.SharedPreferences;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.Environment;
+          import android.widget.Button;
+          import android.widget.EditText;
+          import android.widget.TextView;
+          import androidx.appcompat.app.AppCompatActivity;
+          import androidx.core.app.ActivityCompat;
+          import androidx.core.content.ContextCompat;
+          import java.io.BufferedInputStream;
+          import java.io.BufferedReader;
+          import java.io.File;
+          import java.io.FileInputStream;
+          import java.io.FileOutputStream;
+          import java.io.InputStreamReader;
+          import java.io.OutputStream;
+          import java.io.PrintWriter;
+          import java.net.Inet4Address;
+          import java.net.InetAddress;
+          import java.net.NetworkInterface;
+          import java.net.ServerSocket;
+          import java.net.Socket;
+          import java.net.URLDecoder;
+          import java.net.URLEncoder;
+          import java.nio.charset.StandardCharsets;
+          import java.util.ArrayList;
+          import java.util.Collections;
+          import java.util.List;
+          import java.util.Locale;
+
+          public class MainActivity extends AppCompatActivity {
+
+              private EditText etIp, etPort, etPassword, etFolder;
+              private TextView tvStatus, tvSummary;
+              private SharedPreferences prefs;
+
+              private ServerSocket serverSocket;
+              private Thread serverThread;
+              private volatile boolean running = false;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+
+                  prefs = getSharedPreferences("mg_server_prefs", MODE_PRIVATE);
+
+                  etIp = findViewById(R.id.etIp);
+                  etPort = findViewById(R.id.etPort);
+                  etPassword = findViewById(R.id.etPassword);
+                  etFolder = findViewById(R.id.etFolder);
+                  tvStatus = findViewById(R.id.tvStatus);
+                  tvSummary = findViewById(R.id.tvSummary);
+
+                  Button btnSaveUpdate = findViewById(R.id.btnSaveUpdate);
+                  Button btnStart = findViewById(R.id.btnStart);
+                  Button btnStop = findViewById(R.id.btnStop);
+
+                  String defaultDir = new File(Environment.getExternalStorageDirectory(), "www").getAbsolutePath();
+                  etIp.setText(prefs.getString("ip", detectLocalIp()));
+                  etPort.setText(prefs.getString("port", "8080"));
+                  etPassword.setText(prefs.getString("password", ""));
+                  etFolder.setText(prefs.getString("folder", defaultDir));
+
+                  requestStorageIfNeeded();
+                  generateIndexHtml();
+                  refreshSummary();
+
+                  btnSaveUpdate.setOnClickListener(v -> {
+                      saveConfig();
+                      generateIndexHtml();
+                      refreshSummary();
+                      tvStatus.setText("الحالة: تم حفظ الإعدادات وتحديث index.html");
+                      if (running) {
+                          stopServer();
+                          startServer();
+                      }
+                  });
+
+                  btnStart.setOnClickListener(v -> {
+                      saveConfig();
+                      generateIndexHtml();
+                      startServer();
+                      refreshSummary();
+                  });
+
+                  btnStop.setOnClickListener(v -> {
+                      stopServer();
+                      refreshSummary();
+                  });
+              }
+
+              private void requestStorageIfNeeded() {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                          ActivityCompat.requestPermissions(this, new String[]{
+                                  Manifest.permission.READ_EXTERNAL_STORAGE,
+                                  Manifest.permission.WRITE_EXTERNAL_STORAGE
+                          }, 101);
+                      }
+                  }
+              }
+
+              private String detectLocalIp() {
+                  try {
+                      for (NetworkInterface nif : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                          for (InetAddress addr : Collections.list(nif.getInetAddresses())) {
+                              if (!addr.isLoopbackAddress() && addr instanceof Inet4Address) {
+                                  return addr.getHostAddress();
+                              }
+                          }
+                      }
+                  } catch (Exception ignored) {}
+                  return "192.168.1.200";
+              }
+
+              private void saveConfig() {
+                  prefs.edit()
+                          .putString("ip", etIp.getText().toString().trim())
+                          .putString("port", etPort.getText().toString().trim())
+                          .putString("password", etPassword.getText().toString())
+                          .putString("folder", etFolder.getText().toString().trim())
+                          .apply();
+              }
+
+              private File getRootDir() {
+                  String path = etFolder.getText().toString().trim();
+                  if (path.isEmpty()) {
+                      path = new File(Environment.getExternalStorageDirectory(), "www").getAbsolutePath();
+                  }
+                  File dir = new File(path);
+                  if (!dir.exists()) {
+                      dir.mkdirs();
+                  }
+                  return dir;
+              }
+
+              private void generateIndexHtml() {
+                  try {
+                      File root = getRootDir();
+                      String ip = etIp.getText().toString().trim();
+                      String port = etPort.getText().toString().trim();
+                      String pass = etPassword.getText().toString();
+
+                      File[] files = root.listFiles();
+                      List<File> dirs = new ArrayList<>();
+                      List<File> mediaAndApps = new ArrayList<>();
+
+                      if (files != null) {
+                          for (File f : files) {
+                              if (f.getName().equals("index.html")) continue;
+                              if (f.isDirectory()) dirs.add(f);
+                              else mediaAndApps.add(f);
+                          }
+                      }
+
+                      StringBuilder cards = new StringBuilder();
+                      for (File d : dirs) {
+                          String enc = URLEncoder.encode(d.getName(), "UTF-8");
+                          cards.append("<a class='card' href='?dir=").append(enc).append("'>📁 ")
+                               .append(escapeHtml(d.getName())).append("</a>\n");
+                      }
+
+                      for (File item : mediaAndApps) {
+                          String name = item.getName();
+                          String lower = name.toLowerCase(Locale.ROOT);
+                          String enc = URLEncoder.encode(name, "UTF-8");
+                          if (lower.endsWith(".mp4") || lower.endsWith(".mkv") || lower.endsWith(".webm") || lower.endsWith(".3gp")) {
+                              cards.append("<div class='card'>🎬 <h3>").append(escapeHtml(name))
+                                   .append("</h3><video controls src='").append(enc).append("'></video></div>\n");
+                          } else if (lower.endsWith(".mp3") || lower.endsWith(".m4a") || lower.endsWith(".wav") || lower.endsWith(".ogg")) {
+                              cards.append("<div class='card'>🎵 <h3>").append(escapeHtml(name))
+                                   .append("</h3><audio controls src='").append(enc).append("'></audio></div>\n");
+                          } else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp")) {
+                              cards.append("<div class='card'>🖼️ <h3>").append(escapeHtml(name))
+                                   .append("</h3><img src='").append(enc).append("' style='width:100%;height:140px;object-fit:cover;border-radius:8px;'></div>\n");
+                          } else if (lower.endsWith(".pdf")) {
+                              cards.append("<a class='card' href='").append(enc).append("' target='_blank'>📄 ")
+                                   .append(escapeHtml(name)).append(" (PDF)</a>\n");
+                          } else if (lower.endsWith(".apk")) {
+                              cards.append("<a class='card' href='").append(enc).append("'>📦 ")
+                                   .append(escapeHtml(name)).append(" (تثبيت APK)</a>\n");
+                          }
+                      }
+
+                      String lockBlock = "";
+                      if (!pass.isEmpty()) {
+                          lockBlock = "<div id='lock' style='position:fixed;inset:0;background:#0b0c10;display:flex;align-items:center;justify-content:center;z-index:99;'>"
+                                    + "<div style='background:#161922;padding:20px;border-radius:12px;width:270px;text-align:center;'>"
+                                    + "<h3>قفل السيرفر</h3>"
+                                    + "<input id='pw' type='password' placeholder='كلمة المرور' style='width:100%;padding:8px;margin:10px 0;border-radius:6px;border:1px solid #333;background:#0b0c10;color:#fff;'>"
+                                    + "<button onclick=\"if(document.getElementById('pw').value==='" + escapeJs(pass) + "'){document.getElementById('lock').style.display='none';}else{alert('رمز خاطئ');}\" style='width:100%;padding:8px;border:none;border-radius:6px;background:#e50914;color:#fff;font-weight:bold;'>دخول</button>"
+                                    + "</div></div>";
+                      }
+
+                      String html = "<!DOCTYPE html><html lang='ar' dir='rtl'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1.0'>"
+                                  + "<title>Mg Server (" + escapeHtml(ip) + ":" + escapeHtml(port) + ")</title>"
+                                  + "<style>body{font-family:Tahoma,sans-serif;background:#0b0c10;color:#fff;margin:0;padding:16px;}"
+                                  + ".grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}"
+                                  + ".card{display:block;background:#161922;padding:12px;border-radius:10px;color:#fff;text-decoration:none;}"
+                                  + "video,audio{width:100%;margin-top:8px;border-radius:6px;}</style></head><body>"
+                                  + lockBlock
+                                  + "<h2>Mg Server — " + escapeHtml(ip) + ":" + escapeHtml(port) + "</h2>"
+                                  + "<div class='grid'>" + cards + "</div></body></html>";
+
+                      File outFile = new File(root, "index.html");
+                      try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                          fos.write(html.getBytes(StandardCharsets.UTF_8));
+                      }
+                  } catch (Exception ignored) {}
+              }
+
+              private String escapeHtml(String s) {
+                  return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+              }
+
+              private String escapeJs(String s) {
+                  return s.replace("\\", "\\\\").replace("'", "\\'");
+              }
+
+              private void refreshSummary() {
+                  String ip = etIp.getText().toString().trim();
+                  String port = etPort.getText().toString().trim();
+                  String folder = getRootDir().getAbsolutePath();
+                  String passState = etPassword.getText().toString().isEmpty() ? "بدون كلمة مرور" : "محمي بكلمة مرور";
+                  tvSummary.setText("الرابط: http://" + ip + ":" + port + "\nالمجلد: " + folder + "\nملف الفهرس: " + folder + "/index.html\nالحماية: " + passState);
+              }
+
+              private void startServer() {
+                  if (running) return;
+                  int port = 8080;
+                  try {
+                      port = Integer.parseInt(etPort.getText().toString().trim());
+                  } catch (Exception ignored) {}
+
+                  final int bindPort = port;
+                  running = true;
+                  tvStatus.setText("الحالة: يعمل على المنفذ " + bindPort);
+                  tvStatus.setTextColor(0xFF4ADE80);
+
+                  serverThread = new Thread(() -> {
+                      try {
+                          serverSocket = new ServerSocket(bindPort);
+                          while (running) {
+                              Socket client = serverSocket.accept();
+                              handleClient(client);
+                          }
+                      } catch (Exception e) {
+                          runOnUiThread(() -> {
+                              tvStatus.setText("الحالة: متوقف");
+                              tvStatus.setTextColor(0xFFFF6B72);
+                          });
+                      }
+                  });
+                  serverThread.start();
+              }
+
+              private void stopServer() {
+                  running = false;
+                  try {
+                      if (serverSocket != null) serverSocket.close();
+                  } catch (Exception ignored) {}
+                  tvStatus.setText("الحالة: متوقف");
+                  tvStatus.setTextColor(0xFFFF6B72);
+              }
+
+              private void handleClient(Socket client) {
+                  try (Socket s = client;
+                       BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                       OutputStream out = s.getOutputStream()) {
+
+                      String reqLine = in.readLine();
+                      if (reqLine == null || !reqLine.startsWith("GET ")) return;
+                      String rawPath = reqLine.split(" ")[1];
+                      String cleanPath = rawPath.split("\\?")[0];
+                      cleanPath = URLDecoder.decode(cleanPath, "UTF-8");
+
+                      File root = getRootDir();
+                      String rel = cleanPath.replaceFirst("^/+", "").replace("..", "");
+                      File target = rel.isEmpty() ? new File(root, "index.html") : new File(root, rel);
+                      if (target.isDirectory()) {
+                          File subIndex = new File(target, "index.html");
+                          target = subIndex.exists() ? subIndex : target;
+                      }
+
+                      if (!target.exists() || target.isDirectory()) {
+                          String notFound = "<h1>404 - الملف غير موجود</h1>";
+                          byte[] body = notFound.getBytes(StandardCharsets.UTF_8);
+                          PrintWriter pw = new PrintWriter(out, false);
+                          pw.print("HTTP/1.1 404 Not Found\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.length + "\r\n\r\n");
+                          pw.flush();
+                          out.write(body);
+                          out.flush();
+                          return;
+                      }
+
+                      String mime = guessMime(target.getName());
+                      long len = target.length();
+                      PrintWriter pw = new PrintWriter(out, false);
+                      pw.print("HTTP/1.1 200 OK\r\nContent-Type: " + mime + "\r\nContent-Length: " + len + "\r\nConnection: close\r\n\r\n");
+                      pw.flush();
+
+                      try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(target))) {
+                          byte[] buf = new byte[8192];
+                          int n;
+                          while ((n = bis.read(buf)) != -1) {
+                              out.write(buf, 0, n);
+                          }
+                          out.flush();
+                      }
+                  } catch (Exception ignored) {}
+              }
+
+              private String guessMime(String name) {
+                  String l = name.toLowerCase(Locale.ROOT);
+                  if (l.endsWith(".html") || l.endsWith(".htm")) return "text/html; charset=utf-8";
+                  if (l.endsWith(".apk")) return "application/vnd.android.package-archive";
+                  if (l.endsWith(".pdf")) return "application/pdf";
+                  if (l.endsWith(".mp4")) return "video/mp4";
+                  if (l.endsWith(".mp3")) return "audio/mpeg";
+                  if (l.endsWith(".m4a")) return "audio/mp4";
+                  if (l.endsWith(".jpg") || l.endsWith(".jpeg")) return "image/jpeg";
+                  if (l.endsWith(".png")) return "image/png";
+                  return "application/octet-stream";
+              }
+
+              @Override
+              protected void onDestroy() {
+                  stopServer();
+                  super.onDestroy();
+              }
+          }
+          EOF
+
+      - name: Build Debug APK
+        run: |
+          cd MgServerProject
+          chmod +x gradlew 2>/dev/null || true
+          gradle assembleDebug
+
+      - name: Upload Mg Server APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mg-server-native-apk
+          path: MgServerProject/app/build/outputs/apk/debug/app-debug.apk
